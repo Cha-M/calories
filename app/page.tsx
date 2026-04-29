@@ -2,13 +2,23 @@
 "use client";
 import { JSX, use, useCallback, useMemo, useState } from "react";
 import { searchItems } from "@/utils/api";
-import { SearchResults, Food, FoodWithAmount } from "@/data/interface";
+import {
+  SearchResults,
+  Food,
+  FoodWithAmount,
+  FoodNutrient,
+} from "@/data/interface";
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(
+    null,
+  );
   const [searchFilter, setSearchFilter] = useState("");
-  const [recipes, setRecipes] = useState<FoodWithAmount[]>([]);
+  const [recipes, setRecipes] = useState<{
+    name: string;
+    foods: FoodWithAmount[];
+  }>([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
   const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
 
@@ -53,7 +63,7 @@ export default function Home() {
         <button
           onClick={async () => {
             const data = await searchItems(query);
-            setSearchResults(data);
+            setSearchResults(data as SearchResults);
             navigator.clipboard.writeText(JSON.stringify(data));
             console.log(data);
             setQuery("");
@@ -125,7 +135,7 @@ export default function Home() {
                 <p>
                   KCAL:
                   {item.foodNutrients.find(
-                    (nutrient: any) => nutrient.nutrientId === 1008,
+                    (nutrient: FoodNutrient) => nutrient.nutrientId === 1008,
                   )?.value *
                     (item.amount / 100) || "N/A"}
                 </p>
@@ -156,7 +166,7 @@ export default function Home() {
         {recipes.length > 0 && (
           <div className="mt-8 w-full">
             <h2 className="text-2xl font-bold mb-4">Recipes</h2>
-            {recipes.map((recipe: any, index: number) => (
+            {recipes.map((recipe: FoodWithAmount, index: number) => (
               <div key={`${recipe.id}-${index}`} className="p-4 border rounded">
                 <input
                   type="text"
@@ -168,23 +178,26 @@ export default function Home() {
                     setRecipes(updatedRecipes);
                   }}
                 />
-                {recipe.foods.map((food: any, foodIndex: number) => (
+                {recipe.foods.map((food: FoodWithAmount, foodIndex: number) => (
                   <div key={`${food.fdcId}-${foodIndex}`} className="ml-4">
-                    <p>{food.amount}g {food.description}</p>
+                    <p>
+                      {food.amount}g {food.description}
+                    </p>
                     <p>
                       KCAL:
                       {food.foodNutrients.find(
-                        (nutrient: any) => nutrient.nutrientId === 1008,
+                        (nutrient: FoodNutrient) =>
+                          nutrient.nutrientId === 1008,
                       )?.value *
                         (food.amount / 100) || "N/A"}
                     </p>
                   </div>
                 ))}
                 Total KCAL:{" "}
-                {recipe.foods.reduce((total: number, food: any) => {
+                {recipe.foods.reduce((total: number, food: FoodWithAmount) => {
                   const kcal =
                     food.foodNutrients.find(
-                      (nutrient: any) => nutrient.nutrientId === 1008,
+                      (nutrient: FoodNutrient) => nutrient.nutrientId === 1008,
                     )?.value || 0;
                   return total + kcal * (food.amount / 100);
                 }, 0)}
