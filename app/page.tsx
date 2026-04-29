@@ -18,7 +18,7 @@ export default function Home() {
   const [recipes, setRecipes] = useState<{
     name: string;
     foods: FoodWithAmount[];
-  }>([]);
+  }[]>([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
   const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
 
