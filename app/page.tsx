@@ -1,64 +1,206 @@
-import Image from "next/image";
+// import Image from "next/image";
+"use client";
+import { JSX, use, useCallback, useMemo, useState } from "react";
+import { searchItems } from "@/utils/api";
+import { SearchResults, Food, FoodWithAmount } from "@/data/interface";
 
 export default function Home() {
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResults | null>(null);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [recipes, setRecipes] = useState<FoodWithAmount[]>([]);
+  const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
+  const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
+
+  const filteredResults = useMemo(() => {
+    if (searchFilter.length === 0 || !searchResults) return searchResults;
+    return {
+      ...searchResults,
+      foods: searchResults.foods.filter((food: Food) =>
+        food.description.toLowerCase().includes(searchFilter.toLowerCase()),
+      ),
+    };
+  }, [searchResults, searchFilter]);
+
+  // const removeSelectedItem = useCallback<(indexToRemove: number) => void>(
+  //   (indexToRemove: number) => {
+  //     setSelectedItems((prevItems) =>
+  //       prevItems.filter((_, i) => i !== indexToRemove),
+  //     );
+  //   },
+  //   [],
+  // );
+
+  // const removeRecipe = useCallback<(indexToRemove: number) => void>(
+  //   (indexToRemove: number) => {
+  //     setRecipes((prevRecipes) =>
+  //       prevRecipes.filter((_, i) => i !== indexToRemove),
+  //     );
+  //   },
+  //   [],
+  // );
+
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+      <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <input
+          className="pl-1"
+          type="text"
+          placeholder="Search for food..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        <button
+          onClick={async () => {
+            const data = await searchItems(query);
+            setSearchResults(data);
+            navigator.clipboard.writeText(JSON.stringify(data));
+            console.log(data);
+            setQuery("");
+            setSearchFilter("");
+          }}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Search
+        </button>
+        <input
+          className="pl-1 mt-4"
+          type="text"
+          placeholder="Filter results..."
+          value={searchFilter}
+          onChange={(e) => setSearchFilter(e.target.value)}
+        />
+        {filteredResults && (
+          <div className="mt-8 w-full">
+            <ul className="space-y-4">
+              {filteredResults.foods.map((item: Food, index: number) => (
+                <li
+                  key={`${item.fdcId}-${index}-selection`}
+                  className="p-4 border rounded"
+                >
+                  <button
+                    key={`${item.fdcId}-${index}`}
+                    onClick={() => {
+                      setSelectedItems([
+                        ...selectedItems,
+                        { ...item, amount: 100 },
+                      ]);
+                      setSearchResults(null);
+                    }}
+                  >
+                    {item.description}
+                    {/* yeah need more info than this even at the start */}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {selectedItems.length > 0 && (
+          <ul className="space-y-4">
+            {selectedItems.map((item, index) => (
+              <li
+                key={`${item.fdcId}-${index}-selection`}
+                className="p-4 border rounded"
+              >
+                <h3 className="text-xl font-semibold">{item.description}</h3>
+                <p>
+                  Weight:
+                  <input
+                    type="number"
+                    min={1}
+                    max={10000}
+                    value={item.amount}
+                    onChange={(e) => {
+                      const updatedItems = [...selectedItems];
+                      updatedItems[index] = {
+                        ...item,
+                        amount: parseInt(e.target.value) || 1,
+                      };
+                      setSelectedItems(updatedItems);
+                    }}
+                  />
+                  g
+                </p>
+                <p>
+                  KCAL:
+                  {item.foodNutrients.find(
+                    (nutrient: any) => nutrient.nutrientId === 1008,
+                  )?.value *
+                    (item.amount / 100) || "N/A"}
+                </p>
+                {/* <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    removeSelectedItem(index);
+                  }}
+                  className="px-2 py-1 my-1"
+                >
+                  🗙
+                </button> */}
+              </li>
+            ))}
+          </ul>
+        )}
+        <button
+          onClick={() =>
+            setRecipes([
+              ...recipes,
+              { name: "New recipe", foods: selectedItems },
+            ])
+          }
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          New recipe
+        </button>
+        {recipes.length > 0 && (
+          <div className="mt-8 w-full">
+            <h2 className="text-2xl font-bold mb-4">Recipes</h2>
+            {recipes.map((recipe: any, index: number) => (
+              <div key={`${recipe.id}-${index}`} className="p-4 border rounded">
+                <input
+                  type="text"
+                  placeholder="Recipe name"
+                  value={recipe.name}
+                  onChange={(e) => {
+                    const updatedRecipes = [...recipes];
+                    updatedRecipes[index] = { ...recipe, name: e.target.value };
+                    setRecipes(updatedRecipes);
+                  }}
+                />
+                {recipe.foods.map((food: any, foodIndex: number) => (
+                  <div key={`${food.fdcId}-${foodIndex}`} className="ml-4">
+                    <p>{food.amount}g {food.description}</p>
+                    <p>
+                      KCAL:
+                      {food.foodNutrients.find(
+                        (nutrient: any) => nutrient.nutrientId === 1008,
+                      )?.value *
+                        (food.amount / 100) || "N/A"}
+                    </p>
+                  </div>
+                ))}
+                Total KCAL:{" "}
+                {recipe.foods.reduce((total: number, food: any) => {
+                  const kcal =
+                    food.foodNutrients.find(
+                      (nutrient: any) => nutrient.nutrientId === 1008,
+                    )?.value || 0;
+                  return total + kcal * (food.amount / 100);
+                }, 0)}
+                {/* <button
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    removeRecipe(index);
+                  }}
+                  className="px-2 py-1 my-1"
+                >
+                  🗙
+                </button> */}
+              </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
