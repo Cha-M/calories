@@ -231,7 +231,7 @@ export default function Home() {
                             g {food.description}
                           </p>
                           <p>
-                            KCAL:
+                            KCAL:{" "}
                             {energyNutrient
                               ? Math.round(
                                   energyNutrient.value * (food.amount / 100),
