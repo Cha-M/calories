@@ -15,10 +15,12 @@ export default function Home() {
     null,
   );
   const [searchFilter, setSearchFilter] = useState("");
-  const [recipes, setRecipes] = useState<{
-    name: string;
-    foods: FoodWithAmount[];
-  }[]>([]);
+  const [recipes, setRecipes] = useState<
+    {
+      name: string;
+      foods: FoodWithAmount[];
+    }[]
+  >([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
   const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
 
@@ -108,38 +110,41 @@ export default function Home() {
         )}
         {selectedItems.length > 0 && (
           <ul className="space-y-4">
-            {selectedItems.map((item, index) => (
-              <li
-                key={`${item.fdcId}-${index}-selection`}
-                className="p-4 border rounded"
-              >
-                <h3 className="text-xl font-semibold">{item.description}</h3>
-                <p>
-                  Weight:
-                  <input
-                    type="number"
-                    min={1}
-                    max={10000}
-                    value={item.amount}
-                    onChange={(e) => {
-                      const updatedItems = [...selectedItems];
-                      updatedItems[index] = {
-                        ...item,
-                        amount: parseInt(e.target.value) || 1,
-                      };
-                      setSelectedItems(updatedItems);
-                    }}
-                  />
-                  g
-                </p>
-                <p>
-                  KCAL:
-                  {item.foodNutrients.find(
-                    (nutrient: FoodNutrient) => nutrient.nutrientId === 1008,
-                  )?.value *
-                    (item.amount / 100) || "N/A"}
-                </p>
-                {/* <button
+            {selectedItems.map((item, index) => {
+              const energyNutrient = item.foodNutrients.find(
+                (n: FoodNutrient) => n.nutrientId === 1008,
+              );
+              return (
+                <li
+                  key={`${item.fdcId}-${index}-selection`}
+                  className="p-4 border rounded"
+                >
+                  <h3 className="text-xl font-semibold">{item.description}</h3>
+                  <p>
+                    Weight:
+                    <input
+                      type="number"
+                      min={1}
+                      max={10000}
+                      value={item.amount}
+                      onChange={(e) => {
+                        const updatedItems = [...selectedItems];
+                        updatedItems[index] = {
+                          ...item,
+                          amount: parseInt(e.target.value) || 1,
+                        };
+                        setSelectedItems(updatedItems);
+                      }}
+                    />
+                    g
+                  </p>
+                  <p>
+                    KCAL:
+                    {energyNutrient
+                      ? Math.round(energyNutrient.value * (item.amount / 100))
+                      : "N/A"}
+                  </p>
+                  {/* <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     removeSelectedItem(index);
@@ -148,8 +153,9 @@ export default function Home() {
                 >
                   🗙
                 </button> */}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
         <button
@@ -166,42 +172,91 @@ export default function Home() {
         {recipes.length > 0 && (
           <div className="mt-8 w-full">
             <h2 className="text-2xl font-bold mb-4">Recipes</h2>
-            {recipes.map((recipe: FoodWithAmount, index: number) => (
-              <div key={`${recipe.id}-${index}`} className="p-4 border rounded">
-                <input
-                  type="text"
-                  placeholder="Recipe name"
-                  value={recipe.name}
-                  onChange={(e) => {
-                    const updatedRecipes = [...recipes];
-                    updatedRecipes[index] = { ...recipe, name: e.target.value };
-                    setRecipes(updatedRecipes);
-                  }}
-                />
-                {recipe.foods.map((food: FoodWithAmount, foodIndex: number) => (
-                  <div key={`${food.fdcId}-${foodIndex}`} className="ml-4">
-                    <p>
-                      {food.amount}g {food.description}
-                    </p>
-                    <p>
-                      KCAL:
-                      {food.foodNutrients.find(
-                        (nutrient: FoodNutrient) =>
-                          nutrient.nutrientId === 1008,
-                      )?.value *
-                        (food.amount / 100) || "N/A"}
-                    </p>
-                  </div>
-                ))}
-                Total KCAL:{" "}
-                {recipe.foods.reduce((total: number, food: FoodWithAmount) => {
-                  const kcal =
-                    food.foodNutrients.find(
-                      (nutrient: FoodNutrient) => nutrient.nutrientId === 1008,
-                    )?.value || 0;
-                  return total + kcal * (food.amount / 100);
-                }, 0)}
-                {/* <button
+            {recipes.map(
+              (
+                recipe: { name: string; foods: FoodWithAmount[] },
+                index: number,
+              ) => (
+                <div
+                  key={`${recipe.name}-${index}`}
+                  className="p-4 border rounded"
+                >
+                  <input
+                    type="text"
+                    placeholder="Recipe name"
+                    value={recipe.name}
+                    onChange={(e) => {
+                      const updatedRecipes = [...recipes];
+                      updatedRecipes[index] = {
+                        ...recipe,
+                        name: e.target.value,
+                      };
+                      setRecipes(updatedRecipes);
+                    }}
+                  />
+                  {recipe.foods.map(
+                    (food: FoodWithAmount, foodIndex: number) => {
+                      const energyNutrient = food.foodNutrients.find(
+                        (n: FoodNutrient) => n.nutrientId === 1008,
+                      );
+                      return (
+                        <div
+                          key={`${food.fdcId}-${foodIndex}`}
+                          className="ml-4"
+                        >
+                          <p>
+                            <input
+                              type="number"
+                              min={1}
+                              max={10000}
+                              value={food.amount}
+                              onChange={(e) => {
+                                const updatedRecipes = [...recipes];
+                                updatedRecipes[index] = {
+                                  ...recipe,
+                                  foods: updatedRecipes[index].foods.map(
+                                    (f: FoodWithAmount, i: number) =>
+                                      i === foodIndex
+                                        ? {
+                                            ...f,
+                                            amount:
+                                              parseInt(e.target.value) || 1,
+                                          }
+                                        : f,
+                                  ),
+                                };
+                                setRecipes(updatedRecipes);
+                              }}
+                            />
+                            g {food.description}
+                          </p>
+                          <p>
+                            KCAL:
+                            {energyNutrient
+                              ? Math.round(
+                                  energyNutrient.value * (food.amount / 100),
+                                )
+                              : "N/A"}
+                          </p>
+                        </div>
+                      );
+                    },
+                  )}
+                  Total KCAL:{" "}
+                  {Math.round(
+                    recipe.foods.reduce(
+                      (total: number, food: FoodWithAmount) => {
+                        const kcal =
+                          food.foodNutrients.find(
+                            (nutrient: FoodNutrient) =>
+                              nutrient.nutrientId === 1008,
+                          )?.value || 0;
+                        return total + kcal * (food.amount / 100);
+                      },
+                      0,
+                    ),
+                  )}
+                  {/* <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     removeRecipe(index);
@@ -210,8 +265,9 @@ export default function Home() {
                 >
                   🗙
                 </button> */}
-              </div>
-            ))}
+                </div>
+              ),
+            )}
           </div>
         )}
       </main>
