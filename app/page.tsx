@@ -34,23 +34,23 @@ export default function Home() {
     };
   }, [searchResults, searchFilter]);
 
-  // const removeSelectedItem = useCallback<(indexToRemove: number) => void>(
-  //   (indexToRemove: number) => {
-  //     setSelectedItems((prevItems) =>
-  //       prevItems.filter((_, i) => i !== indexToRemove),
-  //     );
-  //   },
-  //   [],
-  // );
+  const removeSelectedItem = useCallback<(indexToRemove: number) => void>(
+    (indexToRemove: number) => {
+      setSelectedItems((prevItems) =>
+        prevItems.filter((_, i) => i !== indexToRemove),
+      );
+    },
+    [],
+  );
 
-  // const removeRecipe = useCallback<(indexToRemove: number) => void>(
-  //   (indexToRemove: number) => {
-  //     setRecipes((prevRecipes) =>
-  //       prevRecipes.filter((_, i) => i !== indexToRemove),
-  //     );
-  //   },
-  //   [],
-  // );
+  const removeRecipe = useCallback<(indexToRemove: number) => void>(
+    (indexToRemove: number) => {
+      setRecipes((prevRecipes) =>
+        prevRecipes.filter((_, i) => i !== indexToRemove),
+      );
+    },
+    [],
+  );
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -65,7 +65,7 @@ export default function Home() {
         <button
           onClick={async () => {
             const data = await searchItems(query);
-            setSearchResults(data as SearchResults);
+            setSearchResults(data);
             navigator.clipboard.writeText(JSON.stringify(data));
             console.log(data);
             setQuery("");
@@ -144,15 +144,15 @@ export default function Home() {
                       ? Math.round(energyNutrient.value * (item.amount / 100))
                       : "N/A"}
                   </p>
-                  {/* <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    removeSelectedItem(index);
-                  }}
-                  className="px-2 py-1 my-1"
-                >
-                  🗙
-                </button> */}
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      removeSelectedItem(index);
+                    }}
+                    className="px-2 py-1 my-1"
+                  >
+                    🗙
+                  </button>
                 </li>
               );
             })}
@@ -256,15 +256,15 @@ export default function Home() {
                       0,
                     ),
                   )}
-                  {/* <button
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    removeRecipe(index);
-                  }}
-                  className="px-2 py-1 my-1"
-                >
-                  🗙
-                </button> */}
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      removeRecipe(index);
+                    }}
+                    className="px-2 py-1 my-1"
+                  >
+                    🗙
+                  </button>
                 </div>
               ),
             )}

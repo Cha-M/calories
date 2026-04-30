@@ -1,7 +1,8 @@
+import { SearchResults } from "@/data/interface";
 //
 // get item
 // search for item
-export async function searchItems(query: string): Promise<any> {
+export async function searchItems(query: string): Promise<SearchResults> {
   // remove hard coded api key and move to env variable
   // const apiKey = process.env.NUTRITION_API_KEY;
 
