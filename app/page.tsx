@@ -64,6 +64,7 @@ export default function Home() {
         />
         <button
           onClick={async () => {
+            if (!query.trim()) return;
             const data = await searchItems(query);
             setSearchResults(data);
             // Clean this up later
