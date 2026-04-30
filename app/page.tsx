@@ -15,14 +15,35 @@ export default function Home() {
     null,
   );
   const [searchFilter, setSearchFilter] = useState("");
-  const [recipes, setRecipes] = useState<
-    {
-      name: string;
-      foods: FoodWithAmount[];
-    }[]
-  >([]);
+
+  interface Recipe {
+    name: string;
+    foods: FoodWithAmount[];
+  }
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
   const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
+  const [savedDays, setSavedDays] = useState<
+    {
+      Monday: Recipe[];
+      Tuesday: Recipe[];
+      Wednesday: Recipe[];
+      Thursday: Recipe[];
+      Friday: Recipe[];
+      Saturday: Recipe[];
+      Sunday: Recipe[];
+    }[]
+  >([
+    {
+      Monday: [],
+      Tuesday: [],
+      Wednesday: [],
+      Thursday: [],
+      Friday: [],
+      Saturday: [],
+      Sunday: [],
+    },
+  ]);
 
   const filteredResults = useMemo(() => {
     if (searchFilter.length === 0 || !searchResults) return searchResults;
@@ -55,6 +76,136 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <table>
+          <thead>
+            <tr>
+              <td>Monday</td>
+              <td>Tuesday</td>
+              <td>Wednesday</td>
+              <td>Thursday</td>
+              <td>Friday</td>
+              <td>Saturday</td>
+              <td>Sunday</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                {savedDays[0]?.Monday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+              <td>
+                {savedDays[0]?.Tuesday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+              <td>
+                {savedDays[0]?.Wednesday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                <button
+                  onClick={() =>
+                    setSavedDays(() => {
+                      const updatedWeek = {
+                        ...savedDays[0],
+                        Wednesday: [{ ...recipes[0] }],
+                      };
+                      const updatedDays = [...savedDays];
+                      updatedDays[0] = updatedWeek;
+                      return updatedDays;
+                    })
+                  }
+                >
+                  Add recipe
+                </button>
+              </td>
+              <td>
+                {savedDays[0]?.Thursday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+              <td>
+                {savedDays[0]?.Friday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+              <td>
+                {savedDays[0]?.Saturday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+              <td>
+                {savedDays[0]?.Sunday.map((recipe, index) => (
+                  <div key={`${recipe.name}-${index}`}>
+                    {recipe.name}
+                    <ul>
+                      {recipe.foods.map((food, foodIndex) => (
+                        <li key={`${food.fdcId}-${foodIndex}`}>
+                          {food.amount}g {food.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </td>
+            </tr>
+          </tbody>
+        </table>
         <input
           className="pl-1"
           type="text"

@@ -6,17 +6,18 @@ export async function searchItems(query: string): Promise<SearchResults> {
   // remove hard coded api key and move to env variable
   // const apiKey = process.env.NUTRITION_API_KEY;
 
-  // Sanitize the query: The USDA API expects balanced double quotes for phrase searching.
-  // If quotes are unbalanced (e.g., a stray leading quote), we strip them to prevent 400 errors.
-  const quoteCount = (query.match(/"/g) || []).length;
-  const sanitizedQuery = quoteCount % 2 !== 0 ? query.replace(/"/g, "") : query;
+  let processedQuery = query.trim();
+  processedQuery = processedQuery.replace(/\s+/g, " ");
+  const quoteCount = (processedQuery.match(/"/g) || []).length;
+  const finalQuery =
+    quoteCount % 2 !== 0 ? processedQuery.replace(/"/g, "") : processedQuery;
 
   try {
     console.log(
-      `Searching for: ${sanitizedQuery}, encoded: ${encodeURIComponent(sanitizedQuery)}`,
+      `Searching for: ${finalQuery}, encoded: ${encodeURIComponent(finalQuery)}`,
     );
     const response = await fetch(
-      `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=mhsAB8E6u9d5TfxXgcE1irYFMFhokyvdpa8S0GlF&query=${encodeURIComponent(sanitizedQuery)}`,
+      `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=mhsAB8E6u9d5TfxXgcE1irYFMFhokyvdpa8S0GlF&query=${encodeURIComponent(finalQuery)}`,
     );
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
