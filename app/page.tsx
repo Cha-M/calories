@@ -66,8 +66,10 @@ export default function Home() {
           onClick={async () => {
             const data = await searchItems(query);
             setSearchResults(data);
+            // Clean this up later
             navigator.clipboard.writeText(JSON.stringify(data));
             console.log(data);
+            //
             setQuery("");
             setSearchFilter("");
           }}
