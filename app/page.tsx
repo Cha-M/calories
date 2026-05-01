@@ -180,7 +180,7 @@ export default function Home() {
                           }}
                           onMouseDown={(e) => e.preventDefault()}
                         >
-                          x
+                          🗙
                         </button>
                       </div>
                     ),
