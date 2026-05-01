@@ -382,6 +382,7 @@ export default function Home() {
           </div>
         )}
       </main>
+      {/* need modal for selections */}
     </div>
   );
 }
