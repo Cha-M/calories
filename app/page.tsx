@@ -35,13 +35,13 @@ export default function Home() {
     }[]
   >([
     {
-      Monday: [],
-      Tuesday: [],
-      Wednesday: [],
-      Thursday: [],
-      Friday: [],
-      Saturday: [],
-      Sunday: [],
+      Monday: [] as Recipe[],
+      Tuesday: [] as Recipe[],
+      Wednesday: [] as Recipe[],
+      Thursday: [] as Recipe[],
+      Friday: [] as Recipe[],
+      Saturday: [] as Recipe[],
+      Sunday: [] as Recipe[],
     },
   ]);
 
@@ -73,136 +73,63 @@ export default function Home() {
     [],
   );
 
+  const daysOfWeek = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ] as const;
+
+  const addRecipeToDay = useCallback(
+    (day: keyof (typeof savedDays)[0]) => {
+      setSavedDays((prev) => {
+        if (recipes.length === 0) return prev;
+        const recipeToAdd = { ...recipes[0] };
+        const updatedWeek = {
+          ...prev[0],
+          [day]: [...(prev[0][day] || []), recipeToAdd],
+        };
+        const updatedDays = [...prev];
+        updatedDays[0] = updatedWeek;
+        return updatedDays;
+      });
+    },
+    [recipes],
+  );
+
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
         <table>
           <thead>
             <tr>
-              <td>Monday</td>
-              <td>Tuesday</td>
-              <td>Wednesday</td>
-              <td>Thursday</td>
-              <td>Friday</td>
-              <td>Saturday</td>
-              <td>Sunday</td>
+              {daysOfWeek.map((day) => (
+                <td key={day}>{day}</td>
+              ))}
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>
-                {savedDays[0]?.Monday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {savedDays[0]?.Tuesday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {savedDays[0]?.Wednesday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-                <button
-                  onClick={() =>
-                    setSavedDays(() => {
-                      const updatedWeek = {
-                        ...savedDays[0],
-                        Wednesday: [{ ...recipes[0] }],
-                      };
-                      const updatedDays = [...savedDays];
-                      updatedDays[0] = updatedWeek;
-                      return updatedDays;
-                    })
-                  }
-                >
-                  Add recipe
-                </button>
-              </td>
-              <td>
-                {savedDays[0]?.Thursday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {savedDays[0]?.Friday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {savedDays[0]?.Saturday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
-              <td>
-                {savedDays[0]?.Sunday.map((recipe, index) => (
-                  <div key={`${recipe.name}-${index}`}>
-                    {recipe.name}
-                    <ul>
-                      {recipe.foods.map((food, foodIndex) => (
-                        <li key={`${food.fdcId}-${foodIndex}`}>
-                          {food.amount}g {food.description}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </td>
+              {daysOfWeek.map((day) => (
+                <td key={day}>
+                  {savedDays[0]?.[day]?.map((recipe, index) => (
+                    <div key={`${recipe.name}-${index}`}>
+                      {recipe.name}
+                      <ul>
+                        {recipe.foods?.map((food, foodIndex) => (
+                          <li key={`${food.fdcId}-${foodIndex}`}>
+                            {food.amount}g {food.description}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <button onClick={() => addRecipeToDay(day)}>+</button>
+                </td>
+              ))}
             </tr>
           </tbody>
         </table>
