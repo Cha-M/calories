@@ -109,6 +109,24 @@ export default function Home() {
               {daysOfWeek.map((day) => (
                 <td key={day}>{day}</td>
               ))}
+              <td
+                onClick={() =>
+                  setSavedDays((prev) => [
+                    ...prev,
+                    {
+                      Monday: [] as Recipe[],
+                      Tuesday: [] as Recipe[],
+                      Wednesday: [] as Recipe[],
+                      Thursday: [] as Recipe[],
+                      Friday: [] as Recipe[],
+                      Saturday: [] as Recipe[],
+                      Sunday: [] as Recipe[],
+                    },
+                  ])
+                }
+              >
+                +
+              </td>
             </tr>
           </thead>
           <tbody>
@@ -130,6 +148,7 @@ export default function Home() {
                   <button onClick={() => addRecipeToDay(day)}>+</button>
                 </td>
               ))}
+              <td />
             </tr>
           </tbody>
         </table>
