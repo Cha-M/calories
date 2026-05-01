@@ -1591,3 +1591,8 @@ const exampleSearchResults: SearchResults = {
     nutrients: {},
   },
 };
+
+export interface Recipe {
+  name: string;
+  foods: FoodWithAmount[];
+}
