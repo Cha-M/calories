@@ -44,6 +44,7 @@ export default function Home() {
       Sunday: [] as Recipe[],
     },
   ]);
+  const [selectedWeek, setSelectedWeek] = useState(0);
 
   const filteredResults = useMemo(() => {
     if (searchFilter.length === 0 || !searchResults) return searchResults;
@@ -87,45 +88,55 @@ export default function Home() {
     (day: keyof (typeof savedDays)[0]) => {
       setSavedDays((prev) => {
         if (recipes.length === 0) return prev;
-        const recipeToAdd = { ...recipes[0] };
+        const recipeToAdd = { ...recipes[selectedWeek] };
         const updatedWeek = {
-          ...prev[0],
-          [day]: [...(prev[0][day] || []), recipeToAdd],
+          ...prev[selectedWeek],
+          [day]: [...(prev[selectedWeek][day] || []), recipeToAdd],
         };
         const updatedDays = [...prev];
-        updatedDays[0] = updatedWeek;
+        updatedDays[selectedWeek] = updatedWeek;
         return updatedDays;
       });
     },
-    [recipes],
+    [recipes, selectedWeek],
   );
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <input
+          type="number"
+          value={selectedWeek + 1}
+          onChange={(e) => setSelectedWeek(parseInt(e.target.value) - 1)}
+          min="1"
+          max={savedDays.length}
+        />
+        <p>Week {selectedWeek + 1}</p>
         <table>
           <thead>
             <tr>
               {daysOfWeek.map((day) => (
                 <td key={day}>{day}</td>
               ))}
-              <td
-                onClick={() =>
-                  setSavedDays((prev) => [
-                    ...prev,
-                    {
-                      Monday: [] as Recipe[],
-                      Tuesday: [] as Recipe[],
-                      Wednesday: [] as Recipe[],
-                      Thursday: [] as Recipe[],
-                      Friday: [] as Recipe[],
-                      Saturday: [] as Recipe[],
-                      Sunday: [] as Recipe[],
-                    },
-                  ])
-                }
-              >
-                +
+              <td>
+                <button
+                  onClick={() =>
+                    setSavedDays((prev) => [
+                      ...prev,
+                      {
+                        Monday: [] as Recipe[],
+                        Tuesday: [] as Recipe[],
+                        Wednesday: [] as Recipe[],
+                        Thursday: [] as Recipe[],
+                        Friday: [] as Recipe[],
+                        Saturday: [] as Recipe[],
+                        Sunday: [] as Recipe[],
+                      },
+                    ])
+                  }
+                >
+                  +
+                </button>
               </td>
             </tr>
           </thead>
@@ -133,7 +144,7 @@ export default function Home() {
             <tr>
               {daysOfWeek.map((day) => (
                 <td key={day}>
-                  {savedDays[0]?.[day]?.map((recipe, index) => (
+                  {savedDays[selectedWeek]?.[day]?.map((recipe, index) => (
                     <div key={`${recipe.name}-${index}`}>
                       {recipe.name}
                       <ul>
