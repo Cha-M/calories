@@ -41,7 +41,6 @@ export default function Home() {
       Sunday: [] as Recipe[],
     },
   ]);
-  const [selectedWeek, setSelectedWeek] = useState(0);
 
   const filteredResults = useMemo(() => {
     if (searchFilter.length === 0 || !searchResults) return searchResults;
@@ -90,20 +89,20 @@ export default function Home() {
   ] as const;
 
   const addRecipeToDay = useCallback(
-    (day: keyof (typeof savedDays)[0]) => {
+    (day: keyof (typeof savedDays)[0], recipeIndex: number) => {
       setSavedDays((prev) => {
         if (recipes.length === 0) return prev;
-        const recipeToAdd = { ...recipes[0] };
+        const recipeToAdd = { ...recipes[recipeIndex] };
         const updatedWeek = {
-          ...prev[selectedWeek],
-          [day]: [...(prev[selectedWeek][day] || []), recipeToAdd],
+          ...prev[selectedDayAndWeek.week],
+          [day]: [...(prev[selectedDayAndWeek.week][day] || []), recipeToAdd],
         };
         const updatedDays = [...prev];
-        updatedDays[selectedWeek] = updatedWeek;
+        updatedDays[selectedDayAndWeek.week] = updatedWeek;
         return updatedDays;
       });
     },
-    [recipes, selectedWeek],
+    [recipes, selectedDayAndWeek.week],
   );
 
   return (
@@ -111,12 +110,17 @@ export default function Home() {
       <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
         <input
           type="number"
-          value={selectedWeek + 1}
-          onChange={(e) => setSelectedWeek(parseInt(e.target.value) - 1)}
+          value={selectedDayAndWeek.week + 1}
+          onChange={(e) =>
+            setSelectedDayAndWeek({
+              ...selectedDayAndWeek,
+              week: parseInt(e.target.value) - 1,
+            })
+          }
           min="1"
           max={savedDays.length}
         />
-        <p>Week {selectedWeek + 1}</p>
+        <p>Week {selectedDayAndWeek.week + 1}</p>
         <table>
           <thead>
             <tr>
@@ -129,13 +133,13 @@ export default function Home() {
                     setSavedDays((prev) => [
                       ...prev,
                       {
-                        Monday: [] as Recipe[],
-                        Tuesday: [] as Recipe[],
-                        Wednesday: [] as Recipe[],
-                        Thursday: [] as Recipe[],
-                        Friday: [] as Recipe[],
-                        Saturday: [] as Recipe[],
-                        Sunday: [] as Recipe[],
+                        Monday: [],
+                        Tuesday: [],
+                        Wednesday: [],
+                        Thursday: [],
+                        Friday: [],
+                        Saturday: [],
+                        Sunday: [],
                       },
                     ])
                   }
@@ -149,19 +153,49 @@ export default function Home() {
             <tr>
               {daysOfWeek.map((day) => (
                 <td key={day}>
-                  {savedDays[selectedWeek]?.[day]?.map((recipe, index) => (
-                    <div key={`${recipe.name}-${index}`}>
-                      {recipe.name}
-                      <ul>
-                        {recipe.foods?.map((food, foodIndex) => (
-                          <li key={`${food.fdcId}-${foodIndex}`}>
-                            {food.amount}g {food.description}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                  <button onClick={() => setIsAddMealModalOpen(true)}>+</button>
+                  {savedDays[selectedDayAndWeek.week]?.[day]?.map(
+                    (recipe, index) => (
+                      <div key={`${recipe.name}-${index}`}>
+                        {recipe.name}
+                        <ul>
+                          {recipe.foods?.map((food, foodIndex) => (
+                            <li key={`${food.fdcId}-${foodIndex}`}>
+                              {food.amount}g {food.description}
+                            </li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() => {
+                            setSavedDays((prev) => {
+                              const dayRecipes = prev[selectedDayAndWeek.week][day].filter((_, i) => i !== index);
+                              const updatedWeek = {
+                                ...prev[selectedDayAndWeek.week],
+                                [day]: dayRecipes,
+                              };
+                              const updatedDays = [...prev];
+                              updatedDays[selectedDayAndWeek.week] =
+                                updatedWeek;
+                              return updatedDays;
+                            });
+                          }}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >
+                          x
+                        </button>
+                      </div>
+                    ),
+                  )}
+                  <button
+                    onClick={() => {
+                      setSelectedDayAndWeek({
+                        ...selectedDayAndWeek,
+                        day,
+                      });
+                      setIsAddMealModalOpen(true);
+                    }}
+                  >
+                    +
+                  </button>
                 </td>
               ))}
               <td />
@@ -503,7 +537,9 @@ export default function Home() {
                         🗙
                       </button>
                       <button
-                        onClick={() => addRecipeToDay(selectedDayAndWeek.day)}
+                        onClick={() =>
+                          addRecipeToDay(selectedDayAndWeek.day, index)
+                        }
                       >
                         +
                       </button>
