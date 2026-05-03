@@ -6,9 +6,19 @@ import {
   SearchResults,
   Food,
   FoodWithAmount,
-  FoodNutrient,
+  FoodNuTableRowient,
   Recipe,
 } from "@/data/interface";
+import Button from "@mui/material/Button";
+import Input from "@mui/material/Input";
+import Modal from "@mui/material/Modal";
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Snackbar from '@mui/material/Snackbar';
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -76,7 +86,7 @@ export default function Home() {
     day: keyof (typeof savedDays)[0];
     week: number;
   }>({ day: "Monday", week: 0 });
-  const [startDate, setStartDate] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
 
   const daysOfWeek = [
     "Monday",
@@ -108,6 +118,7 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full max-w-3xl flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <input></input>
         <input
           type="number"
           value={selectedDayAndWeek.week + 1}
@@ -121,14 +132,14 @@ export default function Home() {
           max={savedDays.length}
         />
         <p>Week {selectedDayAndWeek.week + 1}</p>
-        <table>
-          <thead>
-            <tr>
+        <Table>
+          <TableHead>
+            <TableRow>
               {daysOfWeek.map((day) => (
-                <td key={day}>{day}</td>
+                <TableCell key={day}>{day}</TableCell>
               ))}
-              <td>
-                <button
+              <TableCell>
+                <Button
                   onClick={() =>
                     setSavedDays((prev) => [
                       ...prev,
@@ -145,14 +156,14 @@ export default function Home() {
                   }
                 >
                   +
-                </button>
-              </td>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
+                </Button>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
               {daysOfWeek.map((day) => (
-                <td key={day}>
+                <TableCell key={day}>
                   {savedDays[selectedDayAndWeek.week]?.[day]?.map(
                     (recipe, index) => (
                       <div key={`${recipe.name}-${index}`}>
@@ -164,10 +175,12 @@ export default function Home() {
                             </li>
                           ))}
                         </ul>
-                        <button
+                        <Button
                           onClick={() => {
                             setSavedDays((prev) => {
-                              const dayRecipes = prev[selectedDayAndWeek.week][day].filter((_, i) => i !== index);
+                              const dayRecipes = prev[selectedDayAndWeek.week][
+                                day
+                              ].filter((_, i) => i !== index);
                               const updatedWeek = {
                                 ...prev[selectedDayAndWeek.week],
                                 [day]: dayRecipes,
@@ -181,42 +194,42 @@ export default function Home() {
                           onMouseDown={(e) => e.preventDefault()}
                         >
                           🗙
-                        </button>
+                        </Button>
                       </div>
                     ),
                   )}
-                  <button
+                  <Button
                     onClick={() => {
                       setSelectedDayAndWeek({
                         ...selectedDayAndWeek,
                         day,
                       });
-                      setIsAddMealModalOpen(true);
+                      setIsAddMealModalOpen(TableRowue);
                     }}
                   >
                     +
-                  </button>
-                </td>
+                  </Button>
+                </TableCell>
               ))}
-              <td />
-            </tr>
-          </tbody>
-        </table>
-        <button onClick={() => setIsAddRecipeModalOpen(true)}>
+              <TableCell />
+            </TableRow>
+          </TableBody>
+        </Table>
+        <Button onClick={() => setIsAddRecipeModalOpen(TableRowue)}>
           Edit recipes
-        </button>
+        </Button>
         {isAddRecipeModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-8 rounded">
               <div className="flex justify-between items-start pt-3 pl-4 pr-3 pb-2">
                 <h2 className="text-2xl font-bold mb-4">Edit Recipes</h2>
-                <button
+                <Button
                   className="px-2 py-1"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsAddRecipeModalOpen(false)}
                 >
                   🗙
-                </button>
+                </Button>
               </div>
               <input
                 className="pl-1"
@@ -225,13 +238,13 @@ export default function Home() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <button
+              <Button
                 onClick={async () => {
-                  if (!query.trim()) return;
+                  if (!query.TableRowim()) return;
                   const data = await searchItems(query);
                   setSearchResults(data);
                   // Clean this up later
-                  navigator.clipboard.writeText(JSON.stringify(data));
+                  navigator.clipboard.writeText(JSON.sTableRowingify(data));
                   console.log(data);
                   //
                   setQuery("");
@@ -240,7 +253,7 @@ export default function Home() {
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
               >
                 Search
-              </button>
+              </Button>
               <input
                 className="pl-1 mt-4"
                 type="text"
@@ -256,7 +269,7 @@ export default function Home() {
                         key={`${item.fdcId}-${index}-selection`}
                         className="p-4 border rounded"
                       >
-                        <button
+                        <Button
                           key={`${item.fdcId}-${index}`}
                           onClick={() => {
                             setSelectedItems([
@@ -268,7 +281,7 @@ export default function Home() {
                         >
                           {item.description}
                           {/* yeah need more info than this even at the start */}
-                        </button>
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -277,8 +290,8 @@ export default function Home() {
               {selectedItems.length > 0 && (
                 <ul className="space-y-4">
                   {selectedItems.map((item, index) => {
-                    const energyNutrient = item.foodNutrients.find(
-                      (n: FoodNutrient) => n.nutrientId === 1008,
+                    const energyNuTableRowient = item.foodNuTableRowients.find(
+                      (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
                     );
                     return (
                       <li
@@ -308,13 +321,13 @@ export default function Home() {
                         </p>
                         <p>
                           KCAL:
-                          {energyNutrient
+                          {energyNuTableRowient
                             ? Math.round(
-                                energyNutrient.value * (item.amount / 100),
+                                energyNuTableRowient.value * (item.amount / 100),
                               )
                             : "N/A"}
                         </p>
-                        <button
+                        <Button
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => {
                             removeSelectedItem(index);
@@ -322,13 +335,13 @@ export default function Home() {
                           className="px-2 py-1 my-1"
                         >
                           🗙
-                        </button>
+                        </Button>
                       </li>
                     );
                   })}
                 </ul>
               )}
-              <button
+              <Button
                 onClick={() =>
                   setRecipes([
                     ...recipes,
@@ -338,7 +351,7 @@ export default function Home() {
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
               >
                 New recipe
-              </button>
+              </Button>
               {recipes.map((recipe, index) => (
                 <div
                   key={`recipe-editor-${index}`}
@@ -359,8 +372,8 @@ export default function Home() {
                   />
                   {recipe.foods.map(
                     (food: FoodWithAmount, foodIndex: number) => {
-                      const energyNutrient = food.foodNutrients.find(
-                        (n: FoodNutrient) => n.nutrientId === 1008,
+                      const energyNuTableRowient = food.foodNuTableRowients.find(
+                        (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
                       );
                       return (
                         <div
@@ -392,9 +405,9 @@ export default function Home() {
                           </p>
                           <p>
                             KCAL:{" "}
-                            {energyNutrient
+                            {energyNuTableRowient
                               ? Math.round(
-                                  energyNutrient.value * (food.amount / 100),
+                                  energyNuTableRowient.value * (food.amount / 100),
                                 )
                               : "N/A"}
                           </p>
@@ -407,16 +420,16 @@ export default function Home() {
                     recipe.foods.reduce(
                       (total: number, food: FoodWithAmount) => {
                         const kcal =
-                          food.foodNutrients.find(
-                            (nutrient: FoodNutrient) =>
-                              nutrient.nutrientId === 1008,
+                          food.foodNuTableRowients.find(
+                            (nuTableRowient: FoodNuTableRowient) =>
+                              nuTableRowient.nuTableRowientId === 1008,
                           )?.value || 0;
                         return total + kcal * (food.amount / 100);
                       },
                       0,
                     ),
                   )}
-                  <button
+                  <Button
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       removeRecipe(index);
@@ -424,7 +437,7 @@ export default function Home() {
                     className="px-2 py-1 my-1"
                   >
                     🗙
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -435,13 +448,13 @@ export default function Home() {
             <div className="bg-white p-8 rounded">
               <div className="flex justify-between items-start pt-3 pl-4 pr-3 pb-2">
                 <h2 className="text-2xl font-bold mb-4">Add Meal</h2>
-                <button
+                <Button
                   className="px-2 py-1"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsAddMealModalOpen(false)}
                 >
                   🗙
-                </button>
+                </Button>
               </div>
               {recipes.length > 0 && (
                 <div className="mt-8 w-full">
@@ -466,8 +479,8 @@ export default function Home() {
                       />
                       {recipe.foods.map(
                         (food: FoodWithAmount, foodIndex: number) => {
-                          const energyNutrient = food.foodNutrients.find(
-                            (n: FoodNutrient) => n.nutrientId === 1008,
+                          const energyNuTableRowient = food.foodNuTableRowients.find(
+                            (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
                           );
                           return (
                             <div
@@ -502,9 +515,9 @@ export default function Home() {
                               </p>
                               <p>
                                 KCAL:{" "}
-                                {energyNutrient
+                                {energyNuTableRowient
                                   ? Math.round(
-                                      energyNutrient.value *
+                                      energyNuTableRowient.value *
                                         (food.amount / 100),
                                     )
                                   : "N/A"}
@@ -518,16 +531,16 @@ export default function Home() {
                         recipe.foods.reduce(
                           (total: number, food: FoodWithAmount) => {
                             const kcal =
-                              food.foodNutrients.find(
-                                (nutrient: FoodNutrient) =>
-                                  nutrient.nutrientId === 1008,
+                              food.foodNuTableRowients.find(
+                                (nuTableRowient: FoodNuTableRowient) =>
+                                  nuTableRowient.nuTableRowientId === 1008,
                               )?.value || 0;
                             return total + kcal * (food.amount / 100);
                           },
                           0,
                         ),
                       )}
-                      <button
+                      <Button
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
                           removeRecipe(index);
@@ -535,14 +548,14 @@ export default function Home() {
                         className="px-2 py-1 my-1"
                       >
                         🗙
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() =>
                           addRecipeToDay(selectedDayAndWeek.day, index)
                         }
                       >
                         +
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
