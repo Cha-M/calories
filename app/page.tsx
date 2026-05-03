@@ -6,19 +6,20 @@ import {
   SearchResults,
   Food,
   FoodWithAmount,
-  FoodNuTableRowient,
+  FoodNutrient,
   Recipe,
 } from "@/data/interface";
 import Button from "@mui/material/Button";
 import Input from "@mui/material/Input";
 import Modal from "@mui/material/Modal";
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Snackbar from '@mui/material/Snackbar';
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -160,7 +161,7 @@ export default function Home() {
               </TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <tbody>
             <TableRow>
               {daysOfWeek.map((day) => (
                 <TableCell key={day}>
@@ -204,7 +205,7 @@ export default function Home() {
                         ...selectedDayAndWeek,
                         day,
                       });
-                      setIsAddMealModalOpen(TableRowue);
+                      setIsAddMealModalOpen(true);
                     }}
                   >
                     +
@@ -213,9 +214,9 @@ export default function Home() {
               ))}
               <TableCell />
             </TableRow>
-          </TableBody>
+          </tbody>
         </Table>
-        <Button onClick={() => setIsAddRecipeModalOpen(TableRowue)}>
+        <Button onClick={() => setIsAddRecipeModalOpen(true)}>
           Edit recipes
         </Button>
         {isAddRecipeModalOpen && (
@@ -240,11 +241,11 @@ export default function Home() {
               />
               <Button
                 onClick={async () => {
-                  if (!query.TableRowim()) return;
+                  if (!query.trim()) return;
                   const data = await searchItems(query);
                   setSearchResults(data);
                   // Clean this up later
-                  navigator.clipboard.writeText(JSON.sTableRowingify(data));
+                  navigator.clipboard.writeText(JSON.stringify(data));
                   console.log(data);
                   //
                   setQuery("");
@@ -290,8 +291,8 @@ export default function Home() {
               {selectedItems.length > 0 && (
                 <ul className="space-y-4">
                   {selectedItems.map((item, index) => {
-                    const energyNuTableRowient = item.foodNuTableRowients.find(
-                      (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
+                    const energyNutrient = item.foodNutrients.find(
+                      (n: FoodNutrient) => n.nutrientId === 1008,
                     );
                     return (
                       <li
@@ -321,9 +322,9 @@ export default function Home() {
                         </p>
                         <p>
                           KCAL:
-                          {energyNuTableRowient
+                          {energyNutrient
                             ? Math.round(
-                                energyNuTableRowient.value * (item.amount / 100),
+                                energyNutrient.value * (item.amount / 100),
                               )
                             : "N/A"}
                         </p>
@@ -372,8 +373,8 @@ export default function Home() {
                   />
                   {recipe.foods.map(
                     (food: FoodWithAmount, foodIndex: number) => {
-                      const energyNuTableRowient = food.foodNuTableRowients.find(
-                        (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
+                      const energyNutrient = food.foodNutrients.find(
+                        (n: FoodNutrient) => n.nutrientId === 1008,
                       );
                       return (
                         <div
@@ -405,9 +406,9 @@ export default function Home() {
                           </p>
                           <p>
                             KCAL:{" "}
-                            {energyNuTableRowient
+                            {energyNutrient
                               ? Math.round(
-                                  energyNuTableRowient.value * (food.amount / 100),
+                                  energyNutrient.value * (food.amount / 100),
                                 )
                               : "N/A"}
                           </p>
@@ -420,9 +421,9 @@ export default function Home() {
                     recipe.foods.reduce(
                       (total: number, food: FoodWithAmount) => {
                         const kcal =
-                          food.foodNuTableRowients.find(
-                            (nuTableRowient: FoodNuTableRowient) =>
-                              nuTableRowient.nuTableRowientId === 1008,
+                          food.foodNutrients.find(
+                            (nutrient: FoodNutrient) =>
+                              nutrient.nutrientId === 1008,
                           )?.value || 0;
                         return total + kcal * (food.amount / 100);
                       },
@@ -479,8 +480,8 @@ export default function Home() {
                       />
                       {recipe.foods.map(
                         (food: FoodWithAmount, foodIndex: number) => {
-                          const energyNuTableRowient = food.foodNuTableRowients.find(
-                            (n: FoodNuTableRowient) => n.nuTableRowientId === 1008,
+                          const energyNutrient = food.foodNutrients.find(
+                            (n: FoodNutrient) => n.nutrientId === 1008,
                           );
                           return (
                             <div
@@ -515,9 +516,9 @@ export default function Home() {
                               </p>
                               <p>
                                 KCAL:{" "}
-                                {energyNuTableRowient
+                                {energyNutrient
                                   ? Math.round(
-                                      energyNuTableRowient.value *
+                                      energyNutrient.value *
                                         (food.amount / 100),
                                     )
                                   : "N/A"}
@@ -531,9 +532,9 @@ export default function Home() {
                         recipe.foods.reduce(
                           (total: number, food: FoodWithAmount) => {
                             const kcal =
-                              food.foodNuTableRowients.find(
-                                (nuTableRowient: FoodNuTableRowient) =>
-                                  nuTableRowient.nuTableRowientId === 1008,
+                              food.foodNutrients.find(
+                                (nutrient: FoodNutrient) =>
+                                  nutrient.nutrientId === 1008,
                               )?.value || 0;
                             return total + kcal * (food.amount / 100);
                           },
