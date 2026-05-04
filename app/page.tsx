@@ -27,6 +27,7 @@ import {
   Snackbar,
   Checkbox,
 } from "@mui/material";
+import DatePicker from "@mui/lab/DatePicker";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -162,7 +163,7 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
-        <input></input>
+        <Input />
         <div className="flex items-center gap-3">
           <label className="font-medium text-sm text-gray-600">Week</label>
           <Input
@@ -330,8 +331,8 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-3">
                 <div className="flex flex-row gap-2">
-                  <input
-                    className="pl-2 py-1.5 border rounded flex-1"
+                  <Input
+                    className="flex-1"
                     type="text"
                     placeholder="Search for food..."
                     value={query}
@@ -354,8 +355,8 @@ export default function Home() {
                     Search
                   </Button>
                 </div>
-                <input
-                  className="pl-2 py-1.5 border rounded w-full"
+                <Input
+                  className="w-full"
                   type="text"
                   placeholder="Filter results..."
                   value={searchFilter}
@@ -477,7 +478,7 @@ export default function Home() {
                   className="p-4 border rounded mt-4 flex flex-col gap-2"
                 >
                   <div className="flex justify-between items-center gap-2">
-                    <input
+                    <Input
                       type="text"
                       placeholder="Recipe name"
                       className="flex-1"
