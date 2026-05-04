@@ -12,6 +12,7 @@ export async function searchItems(query: string): Promise<SearchResults> {
   const finalQuery =
     quoteCount % 2 !== 0 ? processedQuery.replace(/"/g, "") : processedQuery;
 
+  // need page in call to api, but for now just return first page of results
   try {
     console.log(
       `Searching for: ${finalQuery}, encoded: ${encodeURIComponent(finalQuery)}`,

@@ -9,17 +9,9 @@ import {
   FoodNutrient,
   Recipe,
 } from "@/data/interface";
-import Button from "@mui/material/Button";
-import Input from "@mui/material/Input";
-import Modal from "@mui/material/Modal";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Snackbar from "@mui/material/Snackbar";
+
+import { Dialog, DialogTitle, IconButton, Button, Input, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -118,28 +110,34 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full flex-col py-32 px-16 bg-white dark:bg-black sm:items-start">
+      <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
         <input></input>
-        <input
-          type="number"
-          value={selectedDayAndWeek.week + 1}
-          onChange={(e) =>
-            setSelectedDayAndWeek({
-              ...selectedDayAndWeek,
-              week: parseInt(e.target.value) - 1,
-            })
-          }
-          min="1"
-          max={savedDays.length}
-        />
-        <p>Week {selectedDayAndWeek.week + 1}</p>
-        <Table>
+        <div className="flex items-center gap-3">
+          <label className="font-medium text-sm text-gray-600">Week</label>
+          <input
+            type="number"
+            value={selectedDayAndWeek.week + 1}
+            onChange={(e) =>
+              setSelectedDayAndWeek({
+                ...selectedDayAndWeek,
+                week: parseInt(e.target.value) - 1,
+              })
+            }
+            min="1"
+            max={savedDays.length}
+            className="w-16 border rounded px-2 py-1 text-center"
+          />
+          <p className="font-semibold">Week {selectedDayAndWeek.week + 1}</p>
+        </div>
+        <Table sx={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
               {daysOfWeek.map((day) => (
-                <TableCell key={day}>{day}</TableCell>
+                <TableCell align="center" key={day}>
+                  {day}
+                </TableCell>
               ))}
-              <TableCell>
+              <TableCell align="center">
                 <Button
                   onClick={() =>
                     setSavedDays((prev) => [
@@ -161,41 +159,47 @@ export default function Home() {
               </TableCell>
             </TableRow>
           </TableHead>
-          <tbody>
+          <TableBody>
             <TableRow>
               {daysOfWeek.map((day) => (
-                <TableCell key={day}>
+                <TableCell key={day} align="center">
                   {savedDays[selectedDayAndWeek.week]?.[day]?.map(
                     (recipe, index) => (
-                      <div key={`${recipe.name}-${index}`}>
-                        {recipe.name}
-                        <ul>
+                      <div key={`${recipe.name}-${index}`} className="mb-3">
+                        <div className="flex justify-between items-center">
+                          <p className="font-medium">{recipe.name}</p>
+                          <IconButton
+                            onClick={() => {
+                              setSavedDays((prev) => {
+                                const dayRecipes = prev[
+                                  selectedDayAndWeek.week
+                                ][day].filter((_, i) => i !== index);
+                                const updatedWeek = {
+                                  ...prev[selectedDayAndWeek.week],
+                                  [day]: dayRecipes,
+                                };
+                                const updatedDays = [...prev];
+                                updatedDays[selectedDayAndWeek.week] =
+                                  updatedWeek;
+                                return updatedDays;
+                              });
+                            }}
+                            onMouseDown={(e) => e.preventDefault()}
+                            size="small"
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </div>
+                        <ul className="ml-3 mt-1 space-y-0.5 text-sm">
                           {recipe.foods?.map((food, foodIndex) => (
-                            <li key={`${food.fdcId}-${foodIndex}`}>
+                            <li
+                              className="text-left"
+                              key={`${food.fdcId}-${foodIndex}`}
+                            >
                               {food.amount}g {food.description}
                             </li>
                           ))}
                         </ul>
-                        <Button
-                          onClick={() => {
-                            setSavedDays((prev) => {
-                              const dayRecipes = prev[selectedDayAndWeek.week][
-                                day
-                              ].filter((_, i) => i !== index);
-                              const updatedWeek = {
-                                ...prev[selectedDayAndWeek.week],
-                                [day]: dayRecipes,
-                              };
-                              const updatedDays = [...prev];
-                              updatedDays[selectedDayAndWeek.week] =
-                                updatedWeek;
-                              return updatedDays;
-                            });
-                          }}
-                          onMouseDown={(e) => e.preventDefault()}
-                        >
-                          🗙
-                        </Button>
                       </div>
                     ),
                   )}
@@ -212,84 +216,115 @@ export default function Home() {
                   </Button>
                 </TableCell>
               ))}
-              <TableCell />
+              <TableCell sx={{ width: "50px" }} />
             </TableRow>
-          </tbody>
+            {daysOfWeek.some(
+              (day) =>
+                (savedDays[selectedDayAndWeek.week][day]?.length ?? 0) > 0,
+            ) && (
+              <TableRow>
+                {daysOfWeek.map((day) => (
+                  <TableCell key={day} align="center">
+                    {savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
+                      (total: number, recipe: Recipe) => {
+                        return (
+                          total +
+                          recipe.foods.reduce((recipeTotal: number, food) => {
+                            const energyNutrient = food.foodNutrients.find(
+                              (n: FoodNutrient) => n.nutrientId === 1008,
+                            );
+                            const kcal = energyNutrient
+                              ? energyNutrient.value * (food.amount / 100)
+                              : 0;
+                            return recipeTotal + kcal;
+                          }, 0)
+                        );
+                      },
+                      0,
+                    )}{" "}
+                    KCAL
+                  </TableCell>
+                ))}
+                <TableCell sx={{ width: "50px" }} />
+              </TableRow>
+            )}
+          </TableBody>
         </Table>
-        <Button onClick={() => setIsAddRecipeModalOpen(true)}>
-          Edit recipes
-        </Button>
+        <div className="mt-2">
+          <Button onClick={() => setIsAddRecipeModalOpen(true)}>
+            Edit recipes
+          </Button>
+        </div>
         {isAddRecipeModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded">
-              <div className="flex justify-between items-start pt-3 pl-4 pr-3 pb-2">
-                <h2 className="text-2xl font-bold mb-4">Edit Recipes</h2>
-                <Button
-                  className="px-2 py-1"
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Edit Recipes</h2>
+                <IconButton
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsAddRecipeModalOpen(false)}
                 >
-                  🗙
-                </Button>
+                  <CloseIcon />
+                </IconButton>
               </div>
-              <input
-                className="pl-1"
-                type="text"
-                placeholder="Search for food..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <Button
-                onClick={async () => {
-                  if (!query.trim()) return;
-                  const data = await searchItems(query);
-                  setSearchResults(data);
-                  // Clean this up later
-                  navigator.clipboard.writeText(JSON.stringify(data));
-                  console.log(data);
-                  //
-                  setQuery("");
-                  setSearchFilter("");
-                }}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                Search
-              </Button>
-              <input
-                className="pl-1 mt-4"
-                type="text"
-                placeholder="Filter results..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-              />
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-row gap-2">
+                  <input
+                    className="pl-2 py-1.5 border rounded w-full"
+                    type="text"
+                    placeholder="Search for food..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  <Button
+                    onClick={async () => {
+                      if (!query.trim()) return;
+                      const data = await searchItems(query);
+                      setSearchResults(data);
+                      // Clean this up later
+                      navigator.clipboard.writeText(JSON.stringify(data));
+                      console.log(data);
+                      //
+                      setQuery("");
+                      setSearchFilter("");
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                  >
+                    Search
+                  </Button>
+                </div>
+                <input
+                  className="pl-2 py-1.5 border rounded w-full"
+                  type="text"
+                  placeholder="Filter results..."
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                />
+              </div>
               {filteredResults && (
                 <div className="mt-8 w-full">
-                  <ul className="space-y-4">
+                  <ul className="flex flex-col gap-2">
                     {filteredResults.foods.map((item: Food, index: number) => (
-                      <li
-                        key={`${item.fdcId}-${index}-selection`}
-                        className="p-4 border rounded"
+                      <Button
+                        className="w-full justify-start text-left"
+                        key={`${item.fdcId}-${index}`}
+                        onClick={() => {
+                          setSelectedItems([
+                            ...selectedItems,
+                            { ...item, amount: 100 },
+                          ]);
+                          setSearchResults(null);
+                        }}
                       >
-                        <Button
-                          key={`${item.fdcId}-${index}`}
-                          onClick={() => {
-                            setSelectedItems([
-                              ...selectedItems,
-                              { ...item, amount: 100 },
-                            ]);
-                            setSearchResults(null);
-                          }}
-                        >
-                          {item.description}
-                          {/* yeah need more info than this even at the start */}
-                        </Button>
-                      </li>
+                        {item.description}
+                        {/* yeah need more info than this even at the start */}
+                      </Button>
                     ))}
                   </ul>
                 </div>
               )}
               {selectedItems.length > 0 && (
-                <ul className="space-y-4">
+                <ul className="flex flex-col gap-2">
                   {selectedItems.map((item, index) => {
                     const energyNutrient = item.foodNutrients.find(
                       (n: FoodNutrient) => n.nutrientId === 1008,
@@ -299,78 +334,96 @@ export default function Home() {
                         key={`${item.fdcId}-${index}-selection`}
                         className="p-4 border rounded"
                       >
-                        <h3 className="text-xl font-semibold">
-                          {item.description}
-                        </h3>
-                        <p>
-                          Weight:
-                          <input
-                            type="number"
-                            min={1}
-                            max={10000}
-                            value={item.amount}
-                            onChange={(e) => {
-                              const updatedItems = [...selectedItems];
-                              updatedItems[index] = {
-                                ...item,
-                                amount: parseInt(e.target.value) || 1,
-                              };
-                              setSelectedItems(updatedItems);
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="text-xl font-semibold truncate pr-2">
+                            {item.description}
+                          </h3>
+                          <IconButton
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              removeSelectedItem(index);
                             }}
-                          />
-                          g
-                        </p>
-                        <p>
-                          KCAL:
-                          {energyNutrient
-                            ? Math.round(
-                                energyNutrient.value * (item.amount / 100),
-                              )
-                            : "N/A"}
-                        </p>
-                        <Button
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            removeSelectedItem(index);
-                          }}
-                          className="px-2 py-1 my-1"
-                        >
-                          🗙
-                        </Button>
+                            size="small"
+                          >
+                            <CloseIcon fontSize="small" />
+                          </IconButton>
+                        </div>
+                        <div className="flex flex-row items-start">
+                          <p>
+                            Weight:
+                            <input
+                              type="number"
+                              min={1}
+                              max={10000}
+                              value={item.amount}
+                              onChange={(e) => {
+                                const updatedItems = [...selectedItems];
+                                updatedItems[index] = {
+                                  ...item,
+                                  amount: parseInt(e.target.value) || 1,
+                                };
+                                setSelectedItems(updatedItems);
+                              }}
+                            />
+                            g
+                          </p>
+                          <p>
+                            KCAL:
+                            {energyNutrient
+                              ? Math.round(
+                                  energyNutrient.value * (item.amount / 100),
+                                )
+                              : "N/A"}
+                          </p>
+                        </div>
                       </li>
                     );
                   })}
                 </ul>
               )}
-              <Button
-                onClick={() =>
-                  setRecipes([
-                    ...recipes,
-                    { name: "New recipe", foods: selectedItems },
-                  ])
-                }
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                New recipe
-              </Button>
+              <div className="mt-6">
+                <Button
+                  onClick={() =>
+                    setRecipes([
+                      ...recipes,
+                      { name: "New recipe", foods: selectedItems },
+                    ])
+                  }
+                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  New recipe
+                </Button>
+              </div>
               {recipes.map((recipe, index) => (
                 <div
                   key={`recipe-editor-${index}`}
-                  className="p-4 border rounded"
+                  className="p-4 border rounded mt-4 flex flex-col gap-2"
                 >
-                  <input
-                    type="text"
-                    placeholder="Recipe name"
-                    value={recipe.name}
-                    onChange={(e) => {
-                      const updatedRecipes = [...recipes];
-                      updatedRecipes[index] = {
-                        ...recipe,
-                        name: e.target.value,
-                      };
-                      setRecipes(updatedRecipes);
-                    }}
-                  />
+                  <div className="flex justify-between items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Recipe name"
+                      className="flex-1"
+                      value={recipe.name}
+                      onChange={(e) => {
+                        const updatedRecipes = [...recipes];
+                        updatedRecipes[index] = {
+                          ...recipe,
+                          name: e.target.value,
+                        };
+                        setRecipes(updatedRecipes);
+                      }}
+                    />
+                    <IconButton
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        removeRecipe(index);
+                      }}
+                      size="small"
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </div>
                   {recipe.foods.map(
                     (food: FoodWithAmount, foodIndex: number) => {
                       const energyNutrient = food.foodNutrients.find(
@@ -430,32 +483,22 @@ export default function Home() {
                       0,
                     ),
                   )}
-                  <Button
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      removeRecipe(index);
-                    }}
-                    className="px-2 py-1 my-1"
-                  >
-                    🗙
-                  </Button>
                 </div>
               ))}
             </div>
           </div>
         )}
         {isAddMealModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded">
-              <div className="flex justify-between items-start pt-3 pl-4 pr-3 pb-2">
-                <h2 className="text-2xl font-bold mb-4">Add Meal</h2>
-                <Button
-                  className="px-2 py-1"
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Add Meal</h2>
+                <IconButton
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setIsAddMealModalOpen(false)}
                 >
-                  🗙
-                </Button>
+                  <CloseIcon />
+                </IconButton>
               </div>
               {recipes.length > 0 && (
                 <div className="mt-8 w-full">
@@ -463,21 +506,33 @@ export default function Home() {
                   {recipes.map((recipe, index) => (
                     <div
                       key={`meal-modal-recipe-${index}`}
-                      className="p-4 border rounded"
+                      className="p-4 border rounded mt-4 flex flex-col gap-2"
                     >
-                      <input
-                        type="text"
-                        placeholder="Recipe name"
-                        value={recipe.name}
-                        onChange={(e) => {
-                          const updatedRecipes = [...recipes];
-                          updatedRecipes[index] = {
-                            ...recipe,
-                            name: e.target.value,
-                          };
-                          setRecipes(updatedRecipes);
-                        }}
-                      />
+                      <div className="flex justify-between items-center gap-2">
+                        <input
+                          type="text"
+                          placeholder="Recipe name"
+                          className="flex-1"
+                          value={recipe.name}
+                          onChange={(e) => {
+                            const updatedRecipes = [...recipes];
+                            updatedRecipes[index] = {
+                              ...recipe,
+                              name: e.target.value,
+                            };
+                            setRecipes(updatedRecipes);
+                          }}
+                        />
+                        <IconButton
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            removeRecipe(index);
+                          }}
+                          size="small"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </div>
                       {recipe.foods.map(
                         (food: FoodWithAmount, foodIndex: number) => {
                           const energyNutrient = food.foodNutrients.find(
@@ -541,15 +596,6 @@ export default function Home() {
                           0,
                         ),
                       )}
-                      <Button
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          removeRecipe(index);
-                        }}
-                        className="px-2 py-1 my-1"
-                      >
-                        🗙
-                      </Button>
                       <Button
                         onClick={() =>
                           addRecipeToDay(selectedDayAndWeek.day, index)
