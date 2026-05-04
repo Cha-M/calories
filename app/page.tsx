@@ -25,6 +25,7 @@ import {
   TableRow,
   Paper,
   Snackbar,
+  Checkbox,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
@@ -52,6 +53,7 @@ export default function Home() {
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
+  const [brandFilter, setBrandFilter] = useState(false);
   const [savedItems, setSavedItems] = useState<FoodWithAmount[]>([]);
   const [savedDays, setSavedDays] = useState<
     {
@@ -76,14 +78,29 @@ export default function Home() {
   ]);
 
   const filteredResults = useMemo(() => {
-    if (searchFilter.length === 0 || !searchResults) return searchResults;
+    if (!searchResults) return searchResults;
+
+    if (!brandFilter) {
+      return {
+        ...searchResults,
+        foods: searchResults.foods.filter(
+          (food: Food) =>
+            food.description
+              .toLowerCase()
+              .includes(searchFilter.toLowerCase()) &&
+            food.dataType !== "Branded",
+        ),
+      };
+    }
+
     return {
       ...searchResults,
       foods: searchResults.foods.filter((food: Food) =>
         food.description.toLowerCase().includes(searchFilter.toLowerCase()),
       ),
     };
-  }, [searchResults, searchFilter]);
+    //option to filter out branded results which have datatype "Branded". Unbranded I think have a different one
+  }, [searchResults, searchFilter, brandFilter]);
 
   const removeSelectedItem = useCallback<(indexToRemove: number) => void>(
     (indexToRemove: number) => {
@@ -344,6 +361,13 @@ export default function Home() {
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                 />
+                <div>
+                  <Checkbox
+                    checked={brandFilter}
+                    onChange={(e) => setBrandFilter(e.target.checked)}
+                  />
+                  <label>Show branded items</label>
+                </div>
               </div>
               {filteredResults && (
                 <div className="mt-8 w-full">
