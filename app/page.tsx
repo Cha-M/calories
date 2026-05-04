@@ -27,6 +27,7 @@ import {
   Snackbar,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
 
 const daysOfWeek = [
   "Monday",
@@ -143,7 +144,7 @@ export default function Home() {
         <input></input>
         <div className="flex items-center gap-3">
           <label className="font-medium text-sm text-gray-600">Week</label>
-          <input
+          <Input
             type="number"
             value={selectedDayAndWeek.week + 1}
             onChange={(e) =>
@@ -152,9 +153,12 @@ export default function Home() {
                 week: parseInt(e.target.value) - 1,
               })
             }
-            min="1"
-            max={savedDays.length}
-            className="w-16 border rounded px-2 py-1 text-center"
+            disableUnderline
+            sx={{ width: "6ch", "& input": { textAlign: "center" } }}
+            inputProps={{
+              min: 1,
+              max: savedDays.length,
+            }}
           />
           <p className="font-semibold">Week {selectedDayAndWeek.week + 1}</p>
         </div>
@@ -212,7 +216,7 @@ export default function Home() {
                       </div>
                     ),
                   )}
-                  <Button
+                  <IconButton
                     onClick={() => {
                       setSelectedDayAndWeek({
                         ...selectedDayAndWeek,
@@ -221,8 +225,8 @@ export default function Home() {
                       setIsAddMealModalOpen(true);
                     }}
                   >
-                    +
-                  </Button>
+                    <AddIcon />
+                  </IconButton>
                 </TableCell>
               ))}
             </TableRow>
@@ -373,10 +377,8 @@ export default function Home() {
                         <div className="flex flex-row items-start">
                           <p>
                             Weight:
-                            <input
+                            <Input
                               type="number"
-                              min={1}
-                              max={10000}
                               value={item.amount}
                               onChange={(e) => {
                                 const updatedItems = [...selectedItems];
@@ -386,6 +388,12 @@ export default function Home() {
                                 };
                                 setSelectedItems(updatedItems);
                               }}
+                              disableUnderline
+                              sx={{
+                                width: "6ch",
+                                "& input": { textAlign: "center" },
+                              }}
+                              inputProps={{ min: 1, max: 10000 }}
                             />
                             g
                           </p>
@@ -454,13 +462,11 @@ export default function Home() {
                       return (
                         <div
                           key={`${food.fdcId}-${foodIndex}`}
-                          className="ml-4"
+                          className="ml-4 flex items-center gap-1"
                         >
-                          <p>
-                            <input
+                          <p className="flex items-center gap-1">
+                            <Input
                               type="number"
-                              min={1}
-                              max={10000}
                               value={food.amount}
                               onChange={(e) => {
                                 const newAmount = parseInt(e.target.value) || 1;
@@ -476,6 +482,12 @@ export default function Home() {
                                 };
                                 setRecipes(updatedRecipes);
                               }}
+                              disableUnderline
+                              sx={{
+                                width: "6ch",
+                                "& input": { textAlign: "center" },
+                              }}
+                              inputProps={{ min: 1, max: 10000 }}
                             />
                             g {food.description}
                           </p>
@@ -524,7 +536,7 @@ export default function Home() {
               </div>
               {recipes.length > 0 && (
                 <div className="mt-8 w-full">
-                  <h2 className="text-2xl font-bold mb-4">Recipes</h2>
+                  <h3 className="text-2xl font-bold mb-4">Recipes</h3>
                   {recipes.map((recipe, index) => (
                     <div
                       key={`meal-modal-recipe-${index}`}
@@ -566,10 +578,8 @@ export default function Home() {
                               className="ml-4"
                             >
                               <p>
-                                <input
+                                <Input
                                   type="number"
-                                  min={1}
-                                  max={10000}
                                   value={food.amount}
                                   onChange={(e) => {
                                     const updatedRecipes = [...recipes];
@@ -588,6 +598,12 @@ export default function Home() {
                                     };
                                     setRecipes(updatedRecipes);
                                   }}
+                                  disableUnderline
+                                  sx={{
+                                    width: "6ch",
+                                    "& input": { textAlign: "center" },
+                                  }}
+                                  inputProps={{ min: 1, max: 10000 }}
                                 />
                                 g {food.description}
                               </p>
