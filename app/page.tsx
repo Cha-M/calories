@@ -10,8 +10,33 @@ import {
   Recipe,
 } from "@/data/interface";
 
-import { Dialog, DialogTitle, IconButton, Button, Input, Modal, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Snackbar} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import {
+  Dialog,
+  DialogTitle,
+  IconButton,
+  Button,
+  Input,
+  Modal,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Snackbar,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+
+const daysOfWeek = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -75,24 +100,20 @@ export default function Home() {
 
   const [isAddMealModalOpen, setIsAddMealModalOpen] = useState(false);
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
   const [selectedDayAndWeek, setSelectedDayAndWeek] = useState<{
     day: keyof (typeof savedDays)[0];
     week: number;
   }>({ day: "Monday", week: 0 });
   const [startDate, setStartDate] = useState<Date>(new Date());
 
-  const daysOfWeek = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ] as const;
-
   const addRecipeToDay = useCallback(
     (day: keyof (typeof savedDays)[0], recipeIndex: number) => {
+      const recipeName = recipes[recipeIndex]?.name || "Recipe";
+      setSnackbarMessage(`Added ${recipeName} to ${day}`);
+      setIsSnackbarOpen(true);
+
       setSavedDays((prev) => {
         if (recipes.length === 0) return prev;
         const recipeToAdd = { ...recipes[recipeIndex] };
@@ -106,6 +127,14 @@ export default function Home() {
       });
     },
     [recipes, selectedDayAndWeek.week],
+  );
+
+  const doesWeekHaveRecipes = useMemo(
+    () =>
+      daysOfWeek.some(
+        (day) => (savedDays[selectedDayAndWeek.week][day]?.length ?? 0) > 0,
+      ),
+    [savedDays, selectedDayAndWeek.week],
   );
 
   return (
@@ -137,26 +166,6 @@ export default function Home() {
                   {day}
                 </TableCell>
               ))}
-              <TableCell align="center">
-                <Button
-                  onClick={() =>
-                    setSavedDays((prev) => [
-                      ...prev,
-                      {
-                        Monday: [],
-                        Tuesday: [],
-                        Wednesday: [],
-                        Thursday: [],
-                        Friday: [],
-                        Saturday: [],
-                        Sunday: [],
-                      },
-                    ])
-                  }
-                >
-                  +
-                </Button>
-              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -216,12 +225,8 @@ export default function Home() {
                   </Button>
                 </TableCell>
               ))}
-              <TableCell sx={{ width: "50px" }} />
             </TableRow>
-            {daysOfWeek.some(
-              (day) =>
-                (savedDays[selectedDayAndWeek.week][day]?.length ?? 0) > 0,
-            ) && (
+            {doesWeekHaveRecipes && (
               <TableRow>
                 {daysOfWeek.map((day) => (
                   <TableCell key={day} align="center">
@@ -245,7 +250,6 @@ export default function Home() {
                     KCAL
                   </TableCell>
                 ))}
-                <TableCell sx={{ width: "50px" }} />
               </TableRow>
             )}
           </TableBody>
@@ -253,6 +257,24 @@ export default function Home() {
         <div className="mt-2">
           <Button onClick={() => setIsAddRecipeModalOpen(true)}>
             Edit recipes
+          </Button>
+          <Button
+            onClick={() =>
+              setSavedDays((prev) => [
+                ...prev,
+                {
+                  Monday: [],
+                  Tuesday: [],
+                  Wednesday: [],
+                  Thursday: [],
+                  Friday: [],
+                  Saturday: [],
+                  Sunday: [],
+                },
+              ])
+            }
+          >
+            New week
           </Button>
         </div>
         {isAddRecipeModalOpen && (
@@ -611,7 +633,13 @@ export default function Home() {
           </div>
         )}
       </main>
-      {/* need modal for selections */}
+      <Snackbar
+        open={isSnackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setIsSnackbarOpen(false)}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </div>
   );
 }
