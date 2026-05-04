@@ -203,7 +203,7 @@ export default function Home() {
                             <CloseIcon fontSize="small" />
                           </IconButton>
                         </div>
-                        <ul className="ml-3 mt-1 space-y-0.5 text-sm">
+                        {/* <ul className="ml-3 mt-1 space-y-0.5 text-sm">
                           {recipe.foods?.map((food, foodIndex) => (
                             <li
                               className="text-left"
@@ -212,7 +212,7 @@ export default function Home() {
                               {food.amount}g {food.description}
                             </li>
                           ))}
-                        </ul>
+                        </ul> */}
                       </div>
                     ),
                   )}
@@ -258,11 +258,16 @@ export default function Home() {
             )}
           </TableBody>
         </Table>
-        <div className="mt-2">
-          <Button onClick={() => setIsAddRecipeModalOpen(true)}>
+        <div className="mt-4 flex gap-3">
+          <Button
+            variant="contained"
+            onClick={() => setIsAddRecipeModalOpen(true)}
+          >
             Edit recipes
           </Button>
           <Button
+            variant="contained"
+            color="inherit"
             onClick={() =>
               setSavedDays((prev) => [
                 ...prev,
@@ -296,7 +301,7 @@ export default function Home() {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-row gap-2">
                   <input
-                    className="pl-2 py-1.5 border rounded w-full"
+                    className="pl-2 py-1.5 border rounded flex-1"
                     type="text"
                     placeholder="Search for food..."
                     value={query}
@@ -314,7 +319,7 @@ export default function Home() {
                       setQuery("");
                       setSearchFilter("");
                     }}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                    variant="contained"
                   >
                     Search
                   </Button>
@@ -374,7 +379,7 @@ export default function Home() {
                             <CloseIcon fontSize="small" />
                           </IconButton>
                         </div>
-                        <div className="flex flex-row items-start">
+                        <div className="flex flex-row items-center align-center">
                           <p>
                             Weight:
                             <Input
@@ -398,7 +403,7 @@ export default function Home() {
                             g
                           </p>
                           <p>
-                            KCAL:
+                            KCAL:{" "}
                             {energyNutrient
                               ? Math.round(
                                   energyNutrient.value * (item.amount / 100),
@@ -413,6 +418,7 @@ export default function Home() {
               )}
               <div className="mt-6">
                 <Button
+                  variant="contained"
                   onClick={() =>
                     setRecipes([
                       ...recipes,
@@ -536,7 +542,6 @@ export default function Home() {
               </div>
               {recipes.length > 0 && (
                 <div className="mt-8 w-full">
-                  <h3 className="text-2xl font-bold mb-4">Recipes</h3>
                   {recipes.map((recipe, index) => (
                     <div
                       key={`meal-modal-recipe-${index}`}
@@ -635,6 +640,7 @@ export default function Home() {
                         ),
                       )}
                       <Button
+                        variant="contained"
                         onClick={() =>
                           addRecipeToDay(selectedDayAndWeek.day, index)
                         }
