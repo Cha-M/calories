@@ -173,49 +173,56 @@ export default function Home() {
             </TableRow>
           </TableHead>
           <TableBody>
+            {(() => {
+              const maxRecipes = Math.max(
+                ...daysOfWeek.map(
+                  (day) =>
+                    savedDays[selectedDayAndWeek.week]?.[day]?.length ?? 0,
+                ),
+                0,
+              );
+              return Array.from({ length: maxRecipes }, (_, rowIndex) => (
+                <TableRow key={`recipe-row-${rowIndex}`}>
+                  {daysOfWeek.map((day) => {
+                    const recipe =
+                      savedDays[selectedDayAndWeek.week]?.[day]?.[rowIndex];
+                    return (
+                      <TableCell key={day} align="center">
+                        {recipe ? (
+                          <div className="flex justify-between items-center">
+                            <p className="font-medium">{recipe.name}</p>
+                            <IconButton
+                              onClick={() => {
+                                setSavedDays((prev) => {
+                                  const dayRecipes = prev[
+                                    selectedDayAndWeek.week
+                                  ][day].filter((_, i) => i !== rowIndex);
+                                  const updatedWeek = {
+                                    ...prev[selectedDayAndWeek.week],
+                                    [day]: dayRecipes,
+                                  };
+                                  const updatedDays = [...prev];
+                                  updatedDays[selectedDayAndWeek.week] =
+                                    updatedWeek;
+                                  return updatedDays;
+                                });
+                              }}
+                              onMouseDown={(e) => e.preventDefault()}
+                              size="small"
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </div>
+                        ) : null}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              ));
+            })()}
             <TableRow>
               {daysOfWeek.map((day) => (
                 <TableCell key={day} align="center">
-                  {savedDays[selectedDayAndWeek.week]?.[day]?.map(
-                    (recipe, index) => (
-                      <div key={`${recipe.name}-${index}`} className="mb-3">
-                        <div className="flex justify-between items-center">
-                          <p className="font-medium">{recipe.name}</p>
-                          <IconButton
-                            onClick={() => {
-                              setSavedDays((prev) => {
-                                const dayRecipes = prev[
-                                  selectedDayAndWeek.week
-                                ][day].filter((_, i) => i !== index);
-                                const updatedWeek = {
-                                  ...prev[selectedDayAndWeek.week],
-                                  [day]: dayRecipes,
-                                };
-                                const updatedDays = [...prev];
-                                updatedDays[selectedDayAndWeek.week] =
-                                  updatedWeek;
-                                return updatedDays;
-                              });
-                            }}
-                            onMouseDown={(e) => e.preventDefault()}
-                            size="small"
-                          >
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
-                        </div>
-                        {/* <ul className="ml-3 mt-1 space-y-0.5 text-sm">
-                          {recipe.foods?.map((food, foodIndex) => (
-                            <li
-                              className="text-left"
-                              key={`${food.fdcId}-${foodIndex}`}
-                            >
-                              {food.amount}g {food.description}
-                            </li>
-                          ))}
-                        </ul> */}
-                      </div>
-                    ),
-                  )}
                   <IconButton
                     onClick={() => {
                       setSelectedDayAndWeek({
