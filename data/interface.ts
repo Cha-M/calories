@@ -76,6 +76,7 @@ interface FoodAttributeType {
 export interface Food {
   fdcId: number;
   description: string;
+  brandName?: string;
   commonNames: string;
   additionalDescriptions: string;
   dataType: string;

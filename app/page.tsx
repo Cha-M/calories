@@ -29,6 +29,10 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 
+const toTitleCase = (str: string): string => {
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 const daysOfWeek = [
   "Monday",
   "Tuesday",
@@ -297,7 +301,7 @@ export default function Home() {
         </div>
         {isAddRecipeModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[70vw] max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Edit Recipes</h2>
                 <IconButton
@@ -356,7 +360,8 @@ export default function Home() {
                           setSearchResults(null);
                         }}
                       >
-                        {item.description}
+                        {toTitleCase(item.description)}{", "}
+                        {item.brandName && toTitleCase(item.brandName)}
                         {/* yeah need more info than this even at the start */}
                       </Button>
                     ))}
@@ -376,7 +381,8 @@ export default function Home() {
                       >
                         <div className="flex justify-between items-center mb-2">
                           <h3 className="text-xl font-semibold truncate pr-2">
-                            {item.description}
+                            {toTitleCase(item.description)}{", "}
+                            {item.brandName && toTitleCase(item.brandName)}
                           </h3>
                           <IconButton
                             onMouseDown={(e) => e.preventDefault()}
@@ -504,7 +510,7 @@ export default function Home() {
                               }}
                               inputProps={{ min: 1, max: 10000 }}
                             />
-                            g {food.description}
+                            g {toTitleCase(food.description)}
                           </p>
                           <p>
                             KCAL:{" "}
@@ -608,7 +614,7 @@ export default function Home() {
                                   }}
                                   inputProps={{ min: 1, max: 10000 }}
                                 />
-                                g {food.description}
+                                g {toTitleCase(food.description)}
                               </p>
                               <p>
                                 KCAL:{" "}
