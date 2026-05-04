@@ -234,22 +234,24 @@ export default function Home() {
               <TableRow>
                 {daysOfWeek.map((day) => (
                   <TableCell key={day} align="center">
-                    {savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
-                      (total: number, recipe: Recipe) => {
-                        return (
-                          total +
-                          recipe.foods.reduce((recipeTotal: number, food) => {
-                            const energyNutrient = food.foodNutrients.find(
-                              (n: FoodNutrient) => n.nutrientId === 1008,
-                            );
-                            const kcal = energyNutrient
-                              ? energyNutrient.value * (food.amount / 100)
-                              : 0;
-                            return recipeTotal + kcal;
-                          }, 0)
-                        );
-                      },
-                      0,
+                    {Math.round(
+                      savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
+                        (total: number, recipe: Recipe) => {
+                          return (
+                            total +
+                            recipe.foods.reduce((recipeTotal: number, food) => {
+                              const energyNutrient = food.foodNutrients.find(
+                                (n: FoodNutrient) => n.nutrientId === 1008,
+                              );
+                              const kcal = energyNutrient
+                                ? energyNutrient.value * (food.amount / 100)
+                                : 0;
+                              return recipeTotal + kcal;
+                            }, 0)
+                          );
+                        },
+                        0,
+                      ),
                     )}{" "}
                     KCAL
                   </TableCell>
@@ -400,7 +402,7 @@ export default function Home() {
                               }}
                               inputProps={{ min: 1, max: 10000 }}
                             />
-                            g
+                            g{" "}
                           </p>
                           <p>
                             KCAL:{" "}
@@ -545,31 +547,20 @@ export default function Home() {
                   {recipes.map((recipe, index) => (
                     <div
                       key={`meal-modal-recipe-${index}`}
-                      className="p-4 border rounded mt-4 flex flex-col gap-2"
+                      className="p-4 border rounded mt-4 flex flex-col gap-2 relative"
                     >
                       <div className="flex justify-between items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder="Recipe name"
-                          className="flex-1"
-                          value={recipe.name}
-                          onChange={(e) => {
-                            const updatedRecipes = [...recipes];
-                            updatedRecipes[index] = {
-                              ...recipe,
-                              name: e.target.value,
-                            };
-                            setRecipes(updatedRecipes);
-                          }}
-                        />
+                        <p className="text-lg font-semibold flex-1">
+                          {recipe.name}
+                        </p>
                         <IconButton
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            removeRecipe(index);
-                          }}
+                          onClick={() =>
+                            addRecipeToDay(selectedDayAndWeek.day, index)
+                          }
                           size="small"
+                          color="primary" // Added color for visibility
                         >
-                          <CloseIcon fontSize="small" />
+                          <AddIcon fontSize="small" />
                         </IconButton>
                       </div>
                       {recipe.foods.map(
@@ -639,14 +630,6 @@ export default function Home() {
                           0,
                         ),
                       )}
-                      <Button
-                        variant="contained"
-                        onClick={() =>
-                          addRecipeToDay(selectedDayAndWeek.day, index)
-                        }
-                      >
-                        +
-                      </Button>
                     </div>
                   ))}
                 </div>
