@@ -360,7 +360,8 @@ export default function Home() {
                           setSearchResults(null);
                         }}
                       >
-                        {toTitleCase(item.description)}{", "}
+                        {toTitleCase(item.description)}
+                        {item.brandName && ", "}
                         {item.brandName && toTitleCase(item.brandName)}
                         {/* yeah need more info than this even at the start */}
                       </Button>
@@ -381,7 +382,8 @@ export default function Home() {
                       >
                         <div className="flex justify-between items-center mb-2">
                           <h3 className="text-xl font-semibold truncate pr-2">
-                            {toTitleCase(item.description)}{", "}
+                            {toTitleCase(item.description)}
+                            {item.brandName && ", "}
                             {item.brandName && toTitleCase(item.brandName)}
                           </h3>
                           <IconButton
