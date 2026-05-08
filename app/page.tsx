@@ -27,7 +27,10 @@ import {
   Snackbar,
   Checkbox,
 } from "@mui/material";
-import DatePicker from "@mui/lab/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { enGB } from "date-fns/locale";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -163,7 +166,9 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
-        <Input />
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+          <DatePicker label="Start of week" defaultValue={new Date()} />
+        </LocalizationProvider>
         <div className="flex items-center gap-3">
           <label className="font-medium text-sm text-gray-600">Week</label>
           <Input
@@ -582,6 +587,12 @@ export default function Home() {
                   <CloseIcon />
                 </IconButton>
               </div>
+              {recipes.length === 0 && (
+                <p>
+                  No recipes created yet. Create a recipe in the &quot;Edit Recipes&quot;
+                  section to add meals to your plan.
+                </p>
+              )}
               {recipes.length > 0 && (
                 <div className="mt-8 w-full">
                   {recipes.map((recipe, index) => (
