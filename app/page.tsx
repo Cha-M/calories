@@ -4,10 +4,12 @@ import { JSX, use, useCallback, useMemo, useState } from "react";
 import { searchItems } from "@/utils/api";
 import {
   SearchResults,
+  SearchResultsWithOpen,
   Food,
   FoodWithAmount,
   FoodNutrient,
   Recipe,
+  FoodWithOpen,
 } from "@/data/interface";
 
 import {
@@ -33,6 +35,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { enGB } from "date-fns/locale";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const toTitleCase = (str: string): string => {
   return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
@@ -50,9 +54,8 @@ const daysOfWeek = [
 
 export default function Home() {
   const [query, setQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResults | null>(
-    null,
-  );
+  const [searchResults, setSearchResults] =
+    useState<SearchResultsWithOpen | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -88,7 +91,7 @@ export default function Home() {
       return {
         ...searchResults,
         foods: searchResults.foods.filter(
-          (food: Food) =>
+          (food) =>
             food.description
               .toLowerCase()
               .includes(searchFilter.toLowerCase()) &&
@@ -99,7 +102,7 @@ export default function Home() {
 
     return {
       ...searchResults,
-      foods: searchResults.foods.filter((food: Food) =>
+      foods: searchResults.foods.filter((food) =>
         food.description.toLowerCase().includes(searchFilter.toLowerCase()),
       ),
     };
@@ -347,7 +350,14 @@ export default function Home() {
                     onClick={async () => {
                       if (!query.trim()) return;
                       const data = await searchItems(query);
-                      setSearchResults(data);
+                      const resultsWithOpen: SearchResultsWithOpen = {
+                        ...data,
+                        foods: data.foods.map((food) => ({
+                          ...food,
+                          open: false,
+                        })),
+                      };
+                      setSearchResults(resultsWithOpen);
                       // Clean this up later
                       navigator.clipboard.writeText(JSON.stringify(data));
                       console.log(data);
@@ -378,23 +388,83 @@ export default function Home() {
               {filteredResults && (
                 <div className="mt-8 w-full">
                   <ul className="flex flex-col gap-2">
-                    {filteredResults.foods.map((item: Food, index: number) => (
-                      <Button
-                        className="w-full justify-start text-left"
+                    {filteredResults.foods.map((item: FoodWithOpen, index: number) => (
+                      <div
+                        className="w-[60%] flex justify-between text-left items-center"
                         key={`${item.fdcId}-${index}`}
-                        onClick={() => {
-                          setSelectedItems([
-                            ...selectedItems,
-                            { ...item, amount: 100 },
-                          ]);
-                          setSearchResults(null);
-                        }}
                       >
-                        {toTitleCase(item.description)}
-                        {item.brandName && ", "}
-                        {item.brandName && toTitleCase(item.brandName)}
-                        {/* yeah need more info than this even at the start */}
-                      </Button>
+                        <button
+                          onClick={() => {
+                            setSelectedItems([
+                              ...selectedItems,
+                              { ...item, amount: 100 },
+                            ]);
+                            setSearchResults(null);
+                          }}
+                        >
+                          {toTitleCase(item.description)}
+                          {item.brandName && ", "}
+                          {item.brandName && toTitleCase(item.brandName)}
+                          {/* yeah need more info than this even at the start */}
+                          {item.open && (
+                            <div className="mt-2 p-2 border rounded">
+                              <p>
+                                <span className="font-semibold">
+                                  Data type:
+                                </span>{" "}
+                                {item.dataType}
+                              </p>
+                            </div>
+                          )}
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <IconButton
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              if (!searchResults) return;
+                              setSearchResults({
+                                ...searchResults,
+                                foods: searchResults.foods.map((f) =>
+                                  f.fdcId === item.fdcId
+                                    ? { ...f, open: !f.open }
+                                    : f,
+                                ),
+                              });
+                            }}
+                          >
+                            {item.open ? (
+                              <KeyboardArrowUpIcon />
+                            ) : (
+                              <KeyboardArrowDownIcon
+                                onClick={() => {
+                                  if (!searchResults) return;
+                                  setSearchResults({
+                                    ...searchResults,
+                                    foods: searchResults.foods.map((f) =>
+                                      f.fdcId === item.fdcId
+                                        ? { ...f, open: !f.open }
+                                        : f,
+                                    ),
+                                  });
+                                }}
+                              />
+                            )}
+                          </IconButton>
+                          <IconButton
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSelectedItems([
+                                ...selectedItems,
+                                { ...item, amount: 100 },
+                              ]);
+                              setSearchResults(null);
+                            }}
+                            size="small"
+                          >
+                            <AddIcon fontSize="small" />
+                          </IconButton>
+                        </div>
+                      </div>
                     ))}
                   </ul>
                 </div>
@@ -447,8 +517,9 @@ export default function Home() {
                               }}
                               inputProps={{ min: 1, max: 10000 }}
                             />
-                            g{" "}
+                            g
                           </p>
+                          <div className="w-2" />
                           <p>
                             KCAL:{" "}
                             {energyNutrient
@@ -480,7 +551,7 @@ export default function Home() {
               {recipes.map((recipe, index) => (
                 <div
                   key={`recipe-editor-${index}`}
-                  className="p-4 border rounded mt-4 flex flex-col gap-2"
+                  className="p-4 border rounded mt-6 flex flex-col gap-2"
                 >
                   <div className="flex justify-between items-center gap-2">
                     <Input
@@ -544,6 +615,7 @@ export default function Home() {
                             />
                             g {toTitleCase(food.description)}
                           </p>
+                          <div className="w-2" />
                           <p>
                             KCAL:{" "}
                             {energyNutrient
@@ -589,8 +661,8 @@ export default function Home() {
               </div>
               {recipes.length === 0 && (
                 <p>
-                  No recipes created yet. Create a recipe in the &quot;Edit Recipes&quot;
-                  section to add meals to your plan.
+                  No recipes created yet. Create a recipe in the &quot;Edit
+                  Recipes&quot; section to add meals to your plan.
                 </p>
               )}
               {recipes.length > 0 && (

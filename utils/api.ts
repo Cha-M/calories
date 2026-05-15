@@ -3,8 +3,7 @@ import { SearchResults } from "@/data/interface";
 // get item
 // search for item
 export async function searchItems(query: string): Promise<SearchResults> {
-  // remove hard coded api key and move to env variable
-  // const apiKey = process.env.NUTRITION_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_USDA_API_KEY;
 
   let processedQuery = query.trim();
   processedQuery = processedQuery.replace(/\s+/g, " ");
@@ -18,7 +17,7 @@ export async function searchItems(query: string): Promise<SearchResults> {
       `Searching for: ${finalQuery}, encoded: ${encodeURIComponent(finalQuery)}`,
     );
     const response = await fetch(
-      `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=mhsAB8E6u9d5TfxXgcE1irYFMFhokyvdpa8S0GlF&query=${encodeURIComponent(finalQuery)}`,
+      `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${apiKey}&query=${encodeURIComponent(finalQuery)}`,
     );
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);

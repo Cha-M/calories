@@ -8,6 +8,10 @@ export interface SearchResults {
   aggregations: Aggregations;
 }
 
+export interface SearchResultsWithOpen extends SearchResults {
+  foods: FoodWithOpen[];
+}
+
 interface FoodSearchCriteria {
   query: string;
   generalSearchInput: string;
@@ -94,6 +98,10 @@ export interface Food {
   foodAttributes: FoodAttribute[];
   foodAttributeTypes: FoodAttributeType[];
   foodVersionIds: unknown[];
+}
+
+export interface FoodWithOpen extends Food {
+  open: boolean;
 }
 
 export interface FoodWithAmount extends Food {
