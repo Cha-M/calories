@@ -142,6 +142,8 @@ export default function Home() {
 
   const [isAddMealModalOpen, setIsAddMealModalOpen] = useState(false);
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+  const [isUnitConversionModalOpen, setIsUnitConversionModalOpen] =
+    useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
   const [selectedDayAndWeek, setSelectedDayAndWeek] = useState<{
@@ -177,6 +179,27 @@ export default function Home() {
         (day) => (savedDays[selectedDayAndWeek.week][day]?.length ?? 0) > 0,
       ),
     [savedDays, selectedDayAndWeek.week],
+  );
+
+  const wolframUnitConversion = useCallback(
+    async (food: string, unit: string) => {
+      const xmlString = await askWolfram(`Mass of ${unit} of ${food} in grams`);
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+
+      // Extract pod titles and their plaintext results
+      const pods = Array.from(xmlDoc.querySelectorAll("pod")).map((pod) => ({
+        title: pod.getAttribute("title"),
+        text: pod.getElementsByTagName("plaintext" as string)[0]?.textContent,
+      }));
+
+      console.log(
+        "Parsed Wolfram Results:",
+        pods,
+        pods[2]?.text.slice(0, pods[2]?.text.indexOf(" ")),
+      ); // Log the extracted results, including the third pod's text up to the first newline
+    },
+    [],
   );
 
   return (
@@ -571,6 +594,36 @@ export default function Home() {
                               />
                               g
                             </p>
+                            <div className="w-2" />
+                            <Button
+                              size="small"
+                              onClick={() => setIsUnitConversionModalOpen(true)}
+                            >
+                              Convert
+                            </Button>
+                            {isUnitConversionModalOpen && (
+                              <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+                                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[20vw] max-h-[20vh]">
+                                  <p>
+                                    Enter the unit you wish to convert to grams
+                                    eg. 1 UK tablespoon
+                                  </p>
+                                  <Input></Input>
+                                  {/* need state for each */}
+                                  <Button
+                                    size="small"
+                                    onClick={() =>
+                                      wolframUnitConversion(
+                                        item.description,
+                                        "cup",
+                                      )
+                                    }
+                                  >
+                                    Convert
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                             <div className="w-2" />
                             <p>
                               KCAL:{" "}
