@@ -38,6 +38,7 @@ import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { text } from "stream/consumers";
 
 const theme = createTheme({
   components: {
@@ -181,6 +182,7 @@ export default function Home() {
     [savedDays, selectedDayAndWeek.week],
   );
 
+  const [unitConversionUnitText, setUnitConversionUnitText] = useState("");
   const wolframUnitConversion = useCallback(
     async (food: string, unit: string) => {
       const xmlString = await askWolfram(`Mass of ${unit} of ${food} in grams`);
@@ -193,11 +195,9 @@ export default function Home() {
         text: pod.getElementsByTagName("plaintext" as string)[0]?.textContent,
       }));
 
-      console.log(
-        "Parsed Wolfram Results:",
-        pods,
-        pods[2]?.text.slice(0, pods[2]?.text.indexOf(" ")),
-      ); // Log the extracted results, including the third pod's text up to the first newline
+      const resultPod = pods.find((pod) => pod.title === "Result");
+      const conversionResult = parseFloat(resultPod?.text.split(" ")[0]);
+      console.log("Parsed Wolfram Results:", pods, conversionResult);
     },
     [],
   );
@@ -603,19 +603,24 @@ export default function Home() {
                             </Button>
                             {isUnitConversionModalOpen && (
                               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-                                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[20vw] max-h-[20vh]">
+                                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
                                   <p>
                                     Enter the unit you wish to convert to grams
                                     eg. 1 UK tablespoon
                                   </p>
-                                  <Input></Input>
-                                  {/* need state for each */}
+                                  <Input
+                                    placeholder="Enter unit"
+                                    value={unitConversionUnitText}
+                                    onChange={(e) =>
+                                      setUnitConversionUnitText(e.target.value)
+                                    }
+                                  />
                                   <Button
                                     size="small"
                                     onClick={() =>
                                       wolframUnitConversion(
                                         item.description,
-                                        "cup",
+                                        unitConversionUnitText,
                                       )
                                     }
                                   >
