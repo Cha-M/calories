@@ -1,7 +1,7 @@
 // import Image from "next/image";
 "use client";
 import { JSX, use, useCallback, useMemo, useState } from "react";
-import { searchItems } from "@/utils/api";
+import { searchItems, askWolfram } from "@/utils/api";
 import {
   SearchResults,
   SearchResultsWithOpen,
@@ -37,6 +37,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+
+const theme = createTheme({
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+        },
+      },
+    },
+  },
+});
 
 const toTitleCase = (str: string): string => {
   return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
@@ -91,7 +104,7 @@ export default function Home() {
       return {
         ...searchResults,
         foods: searchResults.foods.filter(
-          (food) =>
+          (food: FoodWithOpen) =>
             food.description
               .toLowerCase()
               .includes(searchFilter.toLowerCase()) &&
@@ -102,7 +115,7 @@ export default function Home() {
 
     return {
       ...searchResults,
-      foods: searchResults.foods.filter((food) =>
+      foods: searchResults.foods.filter((food: FoodWithOpen) =>
         food.description.toLowerCase().includes(searchFilter.toLowerCase()),
       ),
     };
@@ -167,275 +180,309 @@ export default function Home() {
   );
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
-          <DatePicker label="Start of week" defaultValue={new Date()} />
-        </LocalizationProvider>
-        <div className="flex items-center gap-3">
-          <label className="font-medium text-sm text-gray-600">Week</label>
-          <Input
-            type="number"
-            value={selectedDayAndWeek.week + 1}
-            onChange={(e) =>
-              setSelectedDayAndWeek({
-                ...selectedDayAndWeek,
-                week: parseInt(e.target.value) - 1,
-              })
-            }
-            disableUnderline
-            sx={{ width: "6ch", "& input": { textAlign: "center" } }}
-            inputProps={{
-              min: 1,
-              max: savedDays.length,
-            }}
-          />
-          <p className="font-semibold">Week {selectedDayAndWeek.week + 1}</p>
-        </div>
-        <Table sx={{ tableLayout: "fixed" }}>
-          <TableHead>
-            <TableRow>
-              {daysOfWeek.map((day) => (
-                <TableCell align="center" key={day}>
-                  {day}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(() => {
-              const maxRecipes = Math.max(
-                ...daysOfWeek.map(
-                  (day) =>
-                    savedDays[selectedDayAndWeek.week]?.[day]?.length ?? 0,
-                ),
-                0,
-              );
-              return Array.from({ length: maxRecipes }, (_, rowIndex) => (
-                <TableRow key={`recipe-row-${rowIndex}`}>
-                  {daysOfWeek.map((day) => {
-                    const recipe =
-                      savedDays[selectedDayAndWeek.week]?.[day]?.[rowIndex];
-                    return (
-                      <TableCell key={day} align="center">
-                        {recipe ? (
-                          <div className="flex justify-between items-center">
-                            <p className="font-medium">{recipe.name}</p>
-                            <IconButton
-                              onClick={() => {
-                                setSavedDays((prev) => {
-                                  const dayRecipes = prev[
-                                    selectedDayAndWeek.week
-                                  ][day].filter((_, i) => i !== rowIndex);
-                                  const updatedWeek = {
-                                    ...prev[selectedDayAndWeek.week],
-                                    [day]: dayRecipes,
-                                  };
-                                  const updatedDays = [...prev];
-                                  updatedDays[selectedDayAndWeek.week] =
-                                    updatedWeek;
-                                  return updatedDays;
-                                });
-                              }}
-                              onMouseDown={(e) => e.preventDefault()}
-                              size="small"
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </div>
-                        ) : null}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              ));
-            })()}
-            <TableRow>
-              {daysOfWeek.map((day) => (
-                <TableCell key={day} align="center">
-                  <IconButton
-                    onClick={() => {
-                      setSelectedDayAndWeek({
-                        ...selectedDayAndWeek,
-                        day,
-                      });
-                      setIsAddMealModalOpen(true);
-                    }}
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </TableCell>
-              ))}
-            </TableRow>
-            {doesWeekHaveRecipes && (
+    <ThemeProvider theme={theme}>
+      <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+        <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
+          <LocalizationProvider
+            dateAdapter={AdapterDateFns}
+            adapterLocale={enGB}
+          >
+            <DatePicker label="Start of week" defaultValue={new Date()} />
+          </LocalizationProvider>
+          <div className="flex items-center gap-3">
+            <label className="font-medium text-sm text-gray-600">Week</label>
+            <Input
+              type="number"
+              value={selectedDayAndWeek.week + 1}
+              onChange={(e) =>
+                setSelectedDayAndWeek({
+                  ...selectedDayAndWeek,
+                  week: parseInt(e.target.value) - 1,
+                })
+              }
+              disableUnderline
+              sx={{ width: "6ch", "& input": { textAlign: "center" } }}
+              inputProps={{
+                min: 1,
+                max: savedDays.length,
+              }}
+            />
+            <p className="font-semibold">Week {selectedDayAndWeek.week + 1}</p>
+          </div>
+          <Table sx={{ tableLayout: "fixed" }}>
+            <TableHead>
               <TableRow>
                 {daysOfWeek.map((day) => (
-                  <TableCell key={day} align="center">
-                    {Math.round(
-                      savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
-                        (total: number, recipe: Recipe) => {
-                          return (
-                            total +
-                            recipe.foods.reduce((recipeTotal: number, food) => {
-                              const energyNutrient = food.foodNutrients.find(
-                                (n: FoodNutrient) => n.nutrientId === 1008,
-                              );
-                              const kcal = energyNutrient
-                                ? energyNutrient.value * (food.amount / 100)
-                                : 0;
-                              return recipeTotal + kcal;
-                            }, 0)
-                          );
-                        },
-                        0,
-                      ),
-                    )}{" "}
-                    KCAL
+                  <TableCell align="center" key={day}>
+                    {day}
                   </TableCell>
                 ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <div className="mt-4 flex gap-3">
-          <Button
-            variant="contained"
-            onClick={() => setIsAddRecipeModalOpen(true)}
-          >
-            Edit recipes
-          </Button>
-          <Button
-            variant="contained"
-            color="inherit"
-            onClick={() =>
-              setSavedDays((prev) => [
-                ...prev,
-                {
-                  Monday: [],
-                  Tuesday: [],
-                  Wednesday: [],
-                  Thursday: [],
-                  Friday: [],
-                  Saturday: [],
-                  Sunday: [],
-                },
-              ])
-            }
-          >
-            New week
-          </Button>
-        </div>
-        {isAddRecipeModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[70vw] max-h-[80vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Edit Recipes</h2>
-                <IconButton
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setIsAddRecipeModalOpen(false)}
-                >
-                  <CloseIcon />
-                </IconButton>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-row gap-2">
-                  <Input
-                    className="flex-1"
-                    type="text"
-                    placeholder="Search for food..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                  <Button
-                    onClick={async () => {
-                      if (!query.trim()) return;
-                      const data = await searchItems(query);
-                      const resultsWithOpen: SearchResultsWithOpen = {
-                        ...data,
-                        foods: data.foods.map((food) => ({
-                          ...food,
-                          open: false,
-                        })),
-                      };
-                      setSearchResults(resultsWithOpen);
-                      // Clean this up later
-                      navigator.clipboard.writeText(JSON.stringify(data));
-                      console.log(data);
-                      //
-                      setQuery("");
-                      setSearchFilter("");
-                    }}
-                    variant="contained"
-                  >
-                    Search
-                  </Button>
-                </div>
-                <Input
-                  className="w-full"
-                  type="text"
-                  placeholder="Filter results..."
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                />
-                <div>
-                  <Checkbox
-                    checked={brandFilter}
-                    onChange={(e) => setBrandFilter(e.target.checked)}
-                  />
-                  <label>Show branded items</label>
-                </div>
-              </div>
-              {filteredResults && (
-                <div className="mt-8 w-full">
-                  <ul className="flex flex-col gap-2">
-                    {filteredResults.foods.map((item: FoodWithOpen, index: number) => (
-                      <div
-                        className="w-[60%] flex justify-between text-left items-center"
-                        key={`${item.fdcId}-${index}`}
-                      >
-                        <button
-                          onClick={() => {
-                            setSelectedItems([
-                              ...selectedItems,
-                              { ...item, amount: 100 },
-                            ]);
-                            setSearchResults(null);
-                          }}
-                        >
-                          {toTitleCase(item.description)}
-                          {item.brandName && ", "}
-                          {item.brandName && toTitleCase(item.brandName)}
-                          {/* yeah need more info than this even at the start */}
-                          {item.open && (
-                            <div className="mt-2 p-2 border rounded">
-                              <p>
-                                <span className="font-semibold">
-                                  Data type:
-                                </span>{" "}
-                                {item.dataType}
-                              </p>
+            </TableHead>
+            <TableBody>
+              {(() => {
+                const maxRecipes = Math.max(
+                  ...daysOfWeek.map(
+                    (day) =>
+                      savedDays[selectedDayAndWeek.week]?.[day]?.length ?? 0,
+                  ),
+                  0,
+                );
+                return Array.from({ length: maxRecipes }, (_, rowIndex) => (
+                  <TableRow key={`recipe-row-${rowIndex}`}>
+                    {daysOfWeek.map((day) => {
+                      const recipe =
+                        savedDays[selectedDayAndWeek.week]?.[day]?.[rowIndex];
+                      return (
+                        <TableCell key={day} align="center">
+                          {recipe ? (
+                            <div className="flex justify-between items-center">
+                              <p className="font-medium">{recipe.name}</p>
+                              <IconButton
+                                onClick={() => {
+                                  setSavedDays((prev) => {
+                                    const dayRecipes = prev[
+                                      selectedDayAndWeek.week
+                                    ][day].filter((_, i) => i !== rowIndex);
+                                    const updatedWeek = {
+                                      ...prev[selectedDayAndWeek.week],
+                                      [day]: dayRecipes,
+                                    };
+                                    const updatedDays = [...prev];
+                                    updatedDays[selectedDayAndWeek.week] =
+                                      updatedWeek;
+                                    return updatedDays;
+                                  });
+                                }}
+                                onMouseDown={(e) => e.preventDefault()}
+                                size="small"
+                              >
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
                             </div>
-                          )}
-                        </button>
-                        <div className="flex items-center gap-1">
-                          <IconButton
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              if (!searchResults) return;
-                              setSearchResults({
-                                ...searchResults,
-                                foods: searchResults.foods.map((f) =>
-                                  f.fdcId === item.fdcId
-                                    ? { ...f, open: !f.open }
-                                    : f,
-                                ),
-                              });
-                            }}
+                          ) : null}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                ));
+              })()}
+              <TableRow>
+                {daysOfWeek.map((day) => (
+                  <TableCell key={day} align="center">
+                    <IconButton
+                      onClick={() => {
+                        setSelectedDayAndWeek({
+                          ...selectedDayAndWeek,
+                          day,
+                        });
+                        setIsAddMealModalOpen(true);
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
+                  </TableCell>
+                ))}
+              </TableRow>
+              {doesWeekHaveRecipes && (
+                <TableRow>
+                  {daysOfWeek.map((day) => (
+                    <TableCell key={day} align="center">
+                      {Math.round(
+                        savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
+                          (total: number, recipe: Recipe) => {
+                            return (
+                              total +
+                              recipe.foods.reduce(
+                                (recipeTotal: number, food) => {
+                                  const energyNutrient =
+                                    food.foodNutrients.find(
+                                      (n: FoodNutrient) =>
+                                        n.nutrientId === 1008,
+                                    );
+                                  const kcal = energyNutrient
+                                    ? energyNutrient.value * (food.amount / 100)
+                                    : 0;
+                                  return recipeTotal + kcal;
+                                },
+                                0,
+                              )
+                            );
+                          },
+                          0,
+                        ),
+                      )}{" "}
+                      KCAL
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <div className="mt-4 flex gap-3">
+            <Button
+              variant="contained"
+              onClick={() => setIsAddRecipeModalOpen(true)}
+            >
+              Edit recipes
+            </Button>
+            <Button
+              variant="contained"
+              color="inherit"
+              onClick={() =>
+                setSavedDays((prev) => [
+                  ...prev,
+                  {
+                    Monday: [],
+                    Tuesday: [],
+                    Wednesday: [],
+                    Thursday: [],
+                    Friday: [],
+                    Saturday: [],
+                    Sunday: [],
+                  },
+                ])
+              }
+            >
+              New week
+            </Button>
+            <Button
+              onClick={async () => {
+                const query = prompt("Enter your Wolfram query:");
+                if (query) {
+                  const xmlString = await askWolfram(query);
+                  const parser = new DOMParser();
+                  const xmlDoc = parser.parseFromString(
+                    xmlString,
+                    "application/xml",
+                  );
+
+                  // Extract pod titles and their plaintext results
+                  const pods = Array.from(xmlDoc.querySelectorAll("pod")).map(
+                    (pod) => ({
+                      title: pod.getAttribute("title"),
+                      text: pod.getElementsByTagName("plaintext" as string)[0]
+                        ?.textContent,
+                    }),
+                  );
+
+                  console.log(
+                    "Parsed Wolfram Results:",
+                    pods,
+                    pods[2]?.text.slice(0, pods[2]?.text.indexOf(" ")),
+                  ); // Log the extracted results, including the third pod's text up to the first newline
+                }
+              }}
+            >
+              Wolfram query
+            </Button>
+          </div>
+          {isAddRecipeModalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[70vw] max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">Edit Recipes</h2>
+                  <IconButton
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setIsAddRecipeModalOpen(false)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-row gap-2">
+                    <Input
+                      className="flex-1"
+                      type="text"
+                      placeholder="Search for food..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter") {
+                          if (!query.trim()) return;
+                          const data = await searchItems(query);
+                          console.log(data);
+                          const resultsWithOpen: SearchResultsWithOpen = {
+                            ...data,
+                            foods: data.foods.map((food) => ({
+                              ...food,
+                              open: false,
+                            })),
+                          };
+                          setSearchResults(resultsWithOpen);
+                          setQuery("");
+                          setSearchFilter("");
+                          // put this into handler
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={async () => {
+                        if (!query.trim()) return;
+                        const data = await searchItems(query);
+                        const resultsWithOpen: SearchResultsWithOpen = {
+                          ...data,
+                          foods: data.foods.map((food) => ({
+                            ...food,
+                            open: false,
+                          })),
+                        };
+                        setSearchResults(resultsWithOpen);
+                        setQuery("");
+                        setSearchFilter("");
+                        // put this into handler
+                      }}
+                      variant="contained"
+                    >
+                      Search
+                    </Button>
+                  </div>
+                  <Input
+                    className="w-full"
+                    type="text"
+                    placeholder="Filter results..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                  />
+                  <div>
+                    <Checkbox
+                      checked={brandFilter}
+                      onChange={(e) => setBrandFilter(e.target.checked)}
+                    />
+                    <label>Show branded items</label>
+                  </div>
+                </div>
+                {filteredResults && (
+                  <div className="mt-8 w-full">
+                    <ul className="flex flex-col gap-2">
+                      {filteredResults.foods.map(
+                        (item: FoodWithOpen, index: number) => (
+                          <div
+                            className="w-[60%] mt-2 p-2 flex justify-between text-left items-start border rounded"
+                            key={`${item.fdcId}-${index}`}
                           >
-                            {item.open ? (
-                              <KeyboardArrowUpIcon />
-                            ) : (
-                              <KeyboardArrowDownIcon
+                            <div>
+                              {toTitleCase(item.description)}
+                              {/* yeah need more info than this even at the start */}
+                              {item.open && (
+                                <div>
+                                  {item.brandName && (
+                                    <div>
+                                      <span>Brand name:</span>{" "}
+                                      {toTitleCase(item.brandName)}
+                                    </div>
+                                  )}
+                                  {item.foodCategory && (
+                                    <div>
+                                      <span>Category:</span> {item.foodCategory}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <IconButton
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
                                   if (!searchResults) return;
                                   setSearchResults({
@@ -447,327 +494,336 @@ export default function Home() {
                                     ),
                                   });
                                 }}
+                              >
+                                {item.open ? (
+                                  <KeyboardArrowUpIcon />
+                                ) : (
+                                  <KeyboardArrowDownIcon />
+                                )}
+                              </IconButton>
+                              <IconButton
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setSelectedItems([
+                                    ...selectedItems,
+                                    { ...item, amount: 100 },
+                                  ]);
+                                  setSearchResults(null);
+                                }}
+                                size="small"
+                              >
+                                <AddIcon fontSize="small" />
+                              </IconButton>
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
+                {selectedItems.length > 0 && (
+                  <ul className="flex flex-col gap-2">
+                    {selectedItems.map((item, index) => {
+                      const energyNutrient = item.foodNutrients.find(
+                        (n: FoodNutrient) => n.nutrientId === 1008,
+                      );
+                      return (
+                        <li
+                          key={`${item.fdcId}-${index}-selection`}
+                          className="p-4 border rounded"
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-xl font-semibold truncate pr-2">
+                              {toTitleCase(item.description)}
+                              {item.brandName && ", "}
+                              {item.brandName && toTitleCase(item.brandName)}
+                            </h3>
+                            <IconButton
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                removeSelectedItem(index);
+                              }}
+                              size="small"
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </div>
+                          <div className="flex flex-row items-center align-center">
+                            <p>
+                              Weight:
+                              <Input
+                                type="number"
+                                value={item.amount}
+                                onChange={(e) => {
+                                  const updatedItems = [...selectedItems];
+                                  updatedItems[index] = {
+                                    ...item,
+                                    amount: parseInt(e.target.value) || 1,
+                                  };
+                                  setSelectedItems(updatedItems);
+                                }}
+                                disableUnderline
+                                sx={{
+                                  width: "6ch",
+                                  "& input": { textAlign: "center" },
+                                }}
+                                inputProps={{ min: 1, max: 10000 }}
                               />
-                            )}
-                          </IconButton>
+                              g
+                            </p>
+                            <div className="w-2" />
+                            <p>
+                              KCAL:{" "}
+                              {energyNutrient
+                                ? Math.round(
+                                    energyNutrient.value * (item.amount / 100),
+                                  )
+                                : "N/A"}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <div className="mt-6">
+                  <Button
+                    variant="contained"
+                    disabled={selectedItems.length === 0}
+                    onClick={() =>
+                      setRecipes([
+                        ...recipes,
+                        { name: "New recipe", foods: selectedItems },
+                      ])
+                    }
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                  >
+                    New recipe
+                  </Button>
+                </div>
+                {recipes.map((recipe, index) => (
+                  <div
+                    key={`recipe-editor-${index}`}
+                    className="p-4 border rounded mt-6 flex flex-col gap-2"
+                  >
+                    <div className="flex justify-between items-center gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Recipe name"
+                        className="flex-1"
+                        value={recipe.name}
+                        onChange={(e) => {
+                          const updatedRecipes = [...recipes];
+                          updatedRecipes[index] = {
+                            ...recipe,
+                            name: e.target.value,
+                          };
+                          setRecipes(updatedRecipes);
+                        }}
+                      />
+                      <IconButton
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          removeRecipe(index);
+                        }}
+                        size="small"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </div>
+                    {recipe.foods.map(
+                      (food: FoodWithAmount, foodIndex: number) => {
+                        const energyNutrient = food.foodNutrients.find(
+                          (n: FoodNutrient) => n.nutrientId === 1008,
+                        );
+                        return (
+                          <div
+                            key={`${food.fdcId}-${foodIndex}`}
+                            className="ml-4 flex items-center gap-1"
+                          >
+                            <p className="flex items-center gap-1">
+                              <Input
+                                type="number"
+                                value={food.amount}
+                                onChange={(e) => {
+                                  const newAmount =
+                                    parseInt(e.target.value) || 1;
+                                  const updatedRecipes = [...recipes];
+                                  const updatedFoods = [...recipe.foods];
+                                  updatedFoods[foodIndex] = {
+                                    ...food,
+                                    amount: newAmount,
+                                  };
+                                  updatedRecipes[index] = {
+                                    ...recipe,
+                                    foods: updatedFoods,
+                                  };
+                                  setRecipes(updatedRecipes);
+                                }}
+                                disableUnderline
+                                sx={{
+                                  width: "6ch",
+                                  "& input": { textAlign: "center" },
+                                }}
+                                inputProps={{ min: 1, max: 10000 }}
+                              />
+                              g {toTitleCase(food.description)}
+                            </p>
+                            <div className="w-2" />
+                            <p>
+                              KCAL:{" "}
+                              {energyNutrient
+                                ? Math.round(
+                                    energyNutrient.value * (food.amount / 100),
+                                  )
+                                : "N/A"}
+                            </p>
+                          </div>
+                        );
+                      },
+                    )}
+                    Total KCAL:{" "}
+                    {Math.round(
+                      recipe.foods.reduce(
+                        (total: number, food: FoodWithAmount) => {
+                          const kcal =
+                            food.foodNutrients.find(
+                              (nutrient: FoodNutrient) =>
+                                nutrient.nutrientId === 1008,
+                            )?.value || 0;
+                          return total + kcal * (food.amount / 100);
+                        },
+                        0,
+                      ),
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {isAddMealModalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold">Add Meal</h2>
+                  <IconButton
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setIsAddMealModalOpen(false)}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </div>
+                {recipes.length === 0 && (
+                  <p>
+                    No recipes created yet. Create a recipe in the &quot;Edit
+                    Recipes&quot; section to add meals to your plan.
+                  </p>
+                )}
+                {recipes.length > 0 && (
+                  <div className="mt-8 w-full">
+                    {recipes.map((recipe, index) => (
+                      <div
+                        key={`meal-modal-recipe-${index}`}
+                        className="p-4 border rounded mt-4 flex flex-col gap-2 relative"
+                      >
+                        <div className="flex justify-between items-center gap-2">
+                          <p className="text-lg font-semibold flex-1">
+                            {recipe.name}
+                          </p>
                           <IconButton
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              setSelectedItems([
-                                ...selectedItems,
-                                { ...item, amount: 100 },
-                              ]);
-                              setSearchResults(null);
-                            }}
+                            onClick={() =>
+                              addRecipeToDay(selectedDayAndWeek.day, index)
+                            }
                             size="small"
+                            color="primary" // Added color for visibility
                           >
                             <AddIcon fontSize="small" />
                           </IconButton>
                         </div>
+                        {recipe.foods.map(
+                          (food: FoodWithAmount, foodIndex: number) => {
+                            const energyNutrient = food.foodNutrients.find(
+                              (n: FoodNutrient) => n.nutrientId === 1008,
+                            );
+                            return (
+                              <div
+                                key={`${food.fdcId}-${foodIndex}`}
+                                className="ml-4"
+                              >
+                                <p>
+                                  <Input
+                                    type="number"
+                                    value={food.amount}
+                                    onChange={(e) => {
+                                      const updatedRecipes = [...recipes];
+                                      updatedRecipes[index] = {
+                                        ...recipe,
+                                        foods: updatedRecipes[index].foods.map(
+                                          (f: FoodWithAmount, i: number) =>
+                                            i === foodIndex
+                                              ? {
+                                                  ...f,
+                                                  amount:
+                                                    parseInt(e.target.value) ||
+                                                    1,
+                                                }
+                                              : f,
+                                        ),
+                                      };
+                                      setRecipes(updatedRecipes);
+                                    }}
+                                    disableUnderline
+                                    sx={{
+                                      width: "6ch",
+                                      "& input": { textAlign: "center" },
+                                    }}
+                                    inputProps={{ min: 1, max: 10000 }}
+                                  />
+                                  g {toTitleCase(food.description)}
+                                </p>
+                                <p>
+                                  KCAL:{" "}
+                                  {energyNutrient
+                                    ? Math.round(
+                                        energyNutrient.value *
+                                          (food.amount / 100),
+                                      )
+                                    : "N/A"}
+                                </p>
+                              </div>
+                            );
+                          },
+                        )}
+                        Total KCAL:{" "}
+                        {Math.round(
+                          recipe.foods.reduce(
+                            (total: number, food: FoodWithAmount) => {
+                              const kcal =
+                                food.foodNutrients.find(
+                                  (nutrient: FoodNutrient) =>
+                                    nutrient.nutrientId === 1008,
+                                )?.value || 0;
+                              return total + kcal * (food.amount / 100);
+                            },
+                            0,
+                          ),
+                        )}
                       </div>
                     ))}
-                  </ul>
-                </div>
-              )}
-              {selectedItems.length > 0 && (
-                <ul className="flex flex-col gap-2">
-                  {selectedItems.map((item, index) => {
-                    const energyNutrient = item.foodNutrients.find(
-                      (n: FoodNutrient) => n.nutrientId === 1008,
-                    );
-                    return (
-                      <li
-                        key={`${item.fdcId}-${index}-selection`}
-                        className="p-4 border rounded"
-                      >
-                        <div className="flex justify-between items-center mb-2">
-                          <h3 className="text-xl font-semibold truncate pr-2">
-                            {toTitleCase(item.description)}
-                            {item.brandName && ", "}
-                            {item.brandName && toTitleCase(item.brandName)}
-                          </h3>
-                          <IconButton
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              removeSelectedItem(index);
-                            }}
-                            size="small"
-                          >
-                            <CloseIcon fontSize="small" />
-                          </IconButton>
-                        </div>
-                        <div className="flex flex-row items-center align-center">
-                          <p>
-                            Weight:
-                            <Input
-                              type="number"
-                              value={item.amount}
-                              onChange={(e) => {
-                                const updatedItems = [...selectedItems];
-                                updatedItems[index] = {
-                                  ...item,
-                                  amount: parseInt(e.target.value) || 1,
-                                };
-                                setSelectedItems(updatedItems);
-                              }}
-                              disableUnderline
-                              sx={{
-                                width: "6ch",
-                                "& input": { textAlign: "center" },
-                              }}
-                              inputProps={{ min: 1, max: 10000 }}
-                            />
-                            g
-                          </p>
-                          <div className="w-2" />
-                          <p>
-                            KCAL:{" "}
-                            {energyNutrient
-                              ? Math.round(
-                                  energyNutrient.value * (item.amount / 100),
-                                )
-                              : "N/A"}
-                          </p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <div className="mt-6">
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    setRecipes([
-                      ...recipes,
-                      { name: "New recipe", foods: selectedItems },
-                    ])
-                  }
-                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                  New recipe
-                </Button>
-              </div>
-              {recipes.map((recipe, index) => (
-                <div
-                  key={`recipe-editor-${index}`}
-                  className="p-4 border rounded mt-6 flex flex-col gap-2"
-                >
-                  <div className="flex justify-between items-center gap-2">
-                    <Input
-                      type="text"
-                      placeholder="Recipe name"
-                      className="flex-1"
-                      value={recipe.name}
-                      onChange={(e) => {
-                        const updatedRecipes = [...recipes];
-                        updatedRecipes[index] = {
-                          ...recipe,
-                          name: e.target.value,
-                        };
-                        setRecipes(updatedRecipes);
-                      }}
-                    />
-                    <IconButton
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        removeRecipe(index);
-                      }}
-                      size="small"
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
                   </div>
-                  {recipe.foods.map(
-                    (food: FoodWithAmount, foodIndex: number) => {
-                      const energyNutrient = food.foodNutrients.find(
-                        (n: FoodNutrient) => n.nutrientId === 1008,
-                      );
-                      return (
-                        <div
-                          key={`${food.fdcId}-${foodIndex}`}
-                          className="ml-4 flex items-center gap-1"
-                        >
-                          <p className="flex items-center gap-1">
-                            <Input
-                              type="number"
-                              value={food.amount}
-                              onChange={(e) => {
-                                const newAmount = parseInt(e.target.value) || 1;
-                                const updatedRecipes = [...recipes];
-                                const updatedFoods = [...recipe.foods];
-                                updatedFoods[foodIndex] = {
-                                  ...food,
-                                  amount: newAmount,
-                                };
-                                updatedRecipes[index] = {
-                                  ...recipe,
-                                  foods: updatedFoods,
-                                };
-                                setRecipes(updatedRecipes);
-                              }}
-                              disableUnderline
-                              sx={{
-                                width: "6ch",
-                                "& input": { textAlign: "center" },
-                              }}
-                              inputProps={{ min: 1, max: 10000 }}
-                            />
-                            g {toTitleCase(food.description)}
-                          </p>
-                          <div className="w-2" />
-                          <p>
-                            KCAL:{" "}
-                            {energyNutrient
-                              ? Math.round(
-                                  energyNutrient.value * (food.amount / 100),
-                                )
-                              : "N/A"}
-                          </p>
-                        </div>
-                      );
-                    },
-                  )}
-                  Total KCAL:{" "}
-                  {Math.round(
-                    recipe.foods.reduce(
-                      (total: number, food: FoodWithAmount) => {
-                        const kcal =
-                          food.foodNutrients.find(
-                            (nutrient: FoodNutrient) =>
-                              nutrient.nutrientId === 1008,
-                          )?.value || 0;
-                        return total + kcal * (food.amount / 100);
-                      },
-                      0,
-                    ),
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {isAddMealModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Add Meal</h2>
-                <IconButton
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => setIsAddMealModalOpen(false)}
-                >
-                  <CloseIcon />
-                </IconButton>
+                )}
               </div>
-              {recipes.length === 0 && (
-                <p>
-                  No recipes created yet. Create a recipe in the &quot;Edit
-                  Recipes&quot; section to add meals to your plan.
-                </p>
-              )}
-              {recipes.length > 0 && (
-                <div className="mt-8 w-full">
-                  {recipes.map((recipe, index) => (
-                    <div
-                      key={`meal-modal-recipe-${index}`}
-                      className="p-4 border rounded mt-4 flex flex-col gap-2 relative"
-                    >
-                      <div className="flex justify-between items-center gap-2">
-                        <p className="text-lg font-semibold flex-1">
-                          {recipe.name}
-                        </p>
-                        <IconButton
-                          onClick={() =>
-                            addRecipeToDay(selectedDayAndWeek.day, index)
-                          }
-                          size="small"
-                          color="primary" // Added color for visibility
-                        >
-                          <AddIcon fontSize="small" />
-                        </IconButton>
-                      </div>
-                      {recipe.foods.map(
-                        (food: FoodWithAmount, foodIndex: number) => {
-                          const energyNutrient = food.foodNutrients.find(
-                            (n: FoodNutrient) => n.nutrientId === 1008,
-                          );
-                          return (
-                            <div
-                              key={`${food.fdcId}-${foodIndex}`}
-                              className="ml-4"
-                            >
-                              <p>
-                                <Input
-                                  type="number"
-                                  value={food.amount}
-                                  onChange={(e) => {
-                                    const updatedRecipes = [...recipes];
-                                    updatedRecipes[index] = {
-                                      ...recipe,
-                                      foods: updatedRecipes[index].foods.map(
-                                        (f: FoodWithAmount, i: number) =>
-                                          i === foodIndex
-                                            ? {
-                                                ...f,
-                                                amount:
-                                                  parseInt(e.target.value) || 1,
-                                              }
-                                            : f,
-                                      ),
-                                    };
-                                    setRecipes(updatedRecipes);
-                                  }}
-                                  disableUnderline
-                                  sx={{
-                                    width: "6ch",
-                                    "& input": { textAlign: "center" },
-                                  }}
-                                  inputProps={{ min: 1, max: 10000 }}
-                                />
-                                g {toTitleCase(food.description)}
-                              </p>
-                              <p>
-                                KCAL:{" "}
-                                {energyNutrient
-                                  ? Math.round(
-                                      energyNutrient.value *
-                                        (food.amount / 100),
-                                    )
-                                  : "N/A"}
-                              </p>
-                            </div>
-                          );
-                        },
-                      )}
-                      Total KCAL:{" "}
-                      {Math.round(
-                        recipe.foods.reduce(
-                          (total: number, food: FoodWithAmount) => {
-                            const kcal =
-                              food.foodNutrients.find(
-                                (nutrient: FoodNutrient) =>
-                                  nutrient.nutrientId === 1008,
-                              )?.value || 0;
-                            return total + kcal * (food.amount / 100);
-                          },
-                          0,
-                        ),
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
-        )}
-      </main>
-      <Snackbar
-        open={isSnackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setIsSnackbarOpen(false)}
-        message={snackbarMessage}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      />
-    </div>
+          )}
+        </main>
+        <Snackbar
+          open={isSnackbarOpen}
+          autoHideDuration={3000}
+          onClose={() => setIsSnackbarOpen(false)}
+          message={snackbarMessage}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        />
+      </div>
+    </ThemeProvider>
   );
 }
