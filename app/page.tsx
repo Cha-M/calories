@@ -184,7 +184,7 @@ export default function Home() {
 
   const [unitConversionUnitText, setUnitConversionUnitText] = useState("");
   const wolframUnitConversion = useCallback(
-    async (food: string, unit: string) => {
+    async (food: string, unit: string, index: number) => {
       const xmlString = await askWolfram(`Mass of ${unit} of ${food} in grams`);
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "application/xml");
@@ -196,8 +196,25 @@ export default function Home() {
       }));
 
       const resultPod = pods.find((pod) => pod.title === "Result");
+      if (!resultPod || !resultPod.text) {
+        setSnackbarMessage("Could not parse conversion result from Wolfram");
+        setIsSnackbarOpen(true);
+        return;
+      }
       const conversionResult = parseFloat(resultPod?.text.split(" ")[0]);
       console.log("Parsed Wolfram Results:", pods, conversionResult);
+      setSelectedItems((prevItems) =>
+        prevItems.map((item, i) =>
+          i === index ? { ...item, amount: conversionResult } : item,
+        ),
+      );
+      setSnackbarMessage(
+        `Converted ${unit} of ${food} to ${conversionResult} grams`,
+      );
+      setIsSnackbarOpen(true);
+      setIsUnitConversionModalOpen(false);
+      setUnitConversionUnitText("");
+      return;
     },
     [],
   );
@@ -621,6 +638,7 @@ export default function Home() {
                                       wolframUnitConversion(
                                         item.description,
                                         unitConversionUnitText,
+                                        index,
                                       )
                                     }
                                   >
