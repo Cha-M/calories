@@ -38,7 +38,7 @@ import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { text } from "stream/consumers";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const theme = createTheme({
   components: {
@@ -71,6 +71,7 @@ export default function Home() {
   const [searchResults, setSearchResults] =
     useState<SearchResultsWithOpen | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
+  const [areResultsLoading, setAreResultsLoading] = useState(false);
 
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedItems, setSelectedItems] = useState<FoodWithAmount[]>([]);
@@ -185,7 +186,7 @@ export default function Home() {
   const [unitConversionUnitText, setUnitConversionUnitText] = useState("");
   const wolframUnitConversion = useCallback(
     async (food: string, unit: string, index: number) => {
-      const xmlString = await askWolfram(`Mass of ${unit} of ${food} in grams`);
+      const xmlString = await askWolfram(`mass of ${unit} of ${food} in grams`);
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "application/xml");
 
@@ -386,36 +387,6 @@ export default function Home() {
             >
               New week
             </Button>
-            <Button
-              onClick={async () => {
-                const query = prompt("Enter your Wolfram query:");
-                if (query) {
-                  const xmlString = await askWolfram(query);
-                  const parser = new DOMParser();
-                  const xmlDoc = parser.parseFromString(
-                    xmlString,
-                    "application/xml",
-                  );
-
-                  // Extract pod titles and their plaintext results
-                  const pods = Array.from(xmlDoc.querySelectorAll("pod")).map(
-                    (pod) => ({
-                      title: pod.getAttribute("title"),
-                      text: pod.getElementsByTagName("plaintext" as string)[0]
-                        ?.textContent,
-                    }),
-                  );
-
-                  console.log(
-                    "Parsed Wolfram Results:",
-                    pods,
-                    pods[2]?.text.slice(0, pods[2]?.text.indexOf(" ")),
-                  ); // Log the extracted results, including the third pod's text up to the first newline
-                }
-              }}
-            >
-              Wolfram query
-            </Button>
           </div>
           {isAddRecipeModalOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
@@ -459,6 +430,7 @@ export default function Home() {
                     <Button
                       onClick={async () => {
                         if (!query.trim()) return;
+                        setAreResultsLoading(true);
                         const data = await searchItems(query);
                         const resultsWithOpen: SearchResultsWithOpen = {
                           ...data,
@@ -470,6 +442,7 @@ export default function Home() {
                         setSearchResults(resultsWithOpen);
                         setQuery("");
                         setSearchFilter("");
+                        setAreResultsLoading(false);
                         // put this into handler
                       }}
                       variant="contained"
@@ -492,7 +465,7 @@ export default function Home() {
                     <label>Show branded items</label>
                   </div>
                 </div>
-                {filteredResults && (
+                {filteredResults && !areResultsLoading && (
                   <div className="mt-8 w-full">
                     <ul className="flex flex-col gap-2">
                       {filteredResults.foods.map(
@@ -561,6 +534,7 @@ export default function Home() {
                     </ul>
                   </div>
                 )}
+                {areResultsLoading && <CircularProgress className="mt-8" />}
                 {selectedItems.length > 0 && (
                   <ul className="flex flex-col gap-2">
                     {selectedItems.map((item, index) => {
@@ -615,6 +589,7 @@ export default function Home() {
                             <Button
                               size="small"
                               onClick={() => setIsUnitConversionModalOpen(true)}
+                              variant="contained"
                             >
                               Convert
                             </Button>

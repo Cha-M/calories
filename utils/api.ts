@@ -1,7 +1,5 @@
 import { SearchResults } from "@/data/interface";
-// Y32WVV8X9Q Wolfram
-// get item
-// search for item
+
 export async function searchItems(query: string): Promise<SearchResults> {
   let processedQuery = query.trim();
   processedQuery = processedQuery.replace(/\s+/g, " ");
