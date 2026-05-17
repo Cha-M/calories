@@ -125,6 +125,25 @@ export default function Home() {
     //option to filter out branded results which have datatype "Branded". Unbranded I think have a different one
   }, [searchResults, searchFilter, brandFilter]);
 
+  const searchHandler = useCallback(async () => {
+    if (!query.trim()) return;
+    setAreResultsLoading(true);
+    const data = await searchItems(query);
+    console.log(data);
+    const resultsWithOpen: SearchResultsWithOpen = {
+      ...data,
+      foods: data.foods.map((food) => ({
+        ...food,
+        open: false,
+      })),
+    };
+    setSearchResults(resultsWithOpen);
+    setQuery("");
+    setSearchFilter("");
+    setAreResultsLoading(false);
+    // put this into handler
+  }, [query]);
+
   const removeSelectedItem = useCallback<(indexToRemove: number) => void>(
     (indexToRemove: number) => {
       setSelectedItems((prevItems) =>
@@ -411,41 +430,13 @@ export default function Home() {
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={async (e) => {
                         if (e.key === "Enter") {
-                          if (!query.trim()) return;
-                          const data = await searchItems(query);
-                          console.log(data);
-                          const resultsWithOpen: SearchResultsWithOpen = {
-                            ...data,
-                            foods: data.foods.map((food) => ({
-                              ...food,
-                              open: false,
-                            })),
-                          };
-                          setSearchResults(resultsWithOpen);
-                          setQuery("");
-                          setSearchFilter("");
-                          // put this into handler
+                          searchHandler();
                         }
                       }}
                     />
                     <Button
-                      onClick={async () => {
-                        if (!query.trim()) return;
-                        setAreResultsLoading(true);
-                        const data = await searchItems(query);
-                        const resultsWithOpen: SearchResultsWithOpen = {
-                          ...data,
-                          foods: data.foods.map((food) => ({
-                            ...food,
-                            open: false,
-                          })),
-                        };
-                        setSearchResults(resultsWithOpen);
-                        setQuery("");
-                        setSearchFilter("");
-                        setAreResultsLoading(false);
-                        // put this into handler
-                      }}
+                      onClick={searchHandler}
+                      loading={areResultsLoading}
                       variant="contained"
                     >
                       Search
@@ -533,11 +524,6 @@ export default function Home() {
                         ),
                       )}
                     </ul>
-                  </div>
-                )}
-                {areResultsLoading && (
-                  <div className="w-full flex justify-center mt-8">
-                    <CircularProgress />
                   </div>
                 )}
                 {selectedItems.length > 0 && (
