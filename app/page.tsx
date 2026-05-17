@@ -39,6 +39,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CircularProgress from "@mui/material/CircularProgress";
+import { set } from "date-fns";
 
 const theme = createTheme({
   components: {
@@ -534,7 +535,11 @@ export default function Home() {
                     </ul>
                   </div>
                 )}
-                {areResultsLoading && <CircularProgress className="mt-8" />}
+                {areResultsLoading && (
+                  <div className="w-full flex justify-center mt-8">
+                    <CircularProgress />
+                  </div>
+                )}
                 {selectedItems.length > 0 && (
                   <ul className="flex flex-col gap-2">
                     {selectedItems.map((item, index) => {
@@ -589,14 +594,25 @@ export default function Home() {
                             <Button
                               size="small"
                               onClick={() => setIsUnitConversionModalOpen(true)}
-                              variant="contained"
                             >
                               Convert
                             </Button>
                             {isUnitConversionModalOpen && (
                               <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
                                 <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
-                                  <p>
+                                  <div className="flex justify-end">
+                                    <IconButton
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      onClick={() => {
+                                        setUnitConversionUnitText("");
+                                        setIsUnitConversionModalOpen(false);
+                                      }}
+                                      size="small"
+                                    >
+                                      <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                  </div>
+                                  <p className="mt-2">
                                     Enter the unit you wish to convert to grams
                                     eg. 1 UK tablespoon
                                   </p>
@@ -609,6 +625,7 @@ export default function Home() {
                                   />
                                   <Button
                                     size="small"
+                                    variant="contained"
                                     onClick={() =>
                                       wolframUnitConversion(
                                         item.description,
