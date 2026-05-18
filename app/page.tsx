@@ -751,6 +751,47 @@ export default function Home() {
                         0,
                       ),
                     )}
+                    <Button onClick={() => setIsPortionModalOpen(true)}>
+                      Portion
+                    </Button>
+                    {isPortionModalOpen && (
+                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
+                          <div className="flex justify-end">
+                            <IconButton
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setIsPortionModalOpen(false);
+                              }}
+                              size="small"
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </div>
+                          <p className="mt-2">
+                            Enter the portion size as a percentage of the original
+                            recipe (e.g. 50 for half, 200 for double)
+                          </p>
+                          <Input
+                            placeholder="Enter portion size (%)"
+                            type="number"
+                            onChange={(e) => {
+                              const portion = parseFloat(e.target.value) / 100;
+                              const updatedRecipes = [...recipes];
+                              updatedRecipes.push({
+                                ...recipe,
+                                name: `${recipe.name} (${e.target.value}%)`,
+                                foods: recipe.foods.map((food) => ({
+                                  ...food,
+                                  amount: food.amount * portion,
+                                })),
+                              });
+                              setRecipes(updatedRecipes);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
