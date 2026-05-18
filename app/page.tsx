@@ -38,7 +38,6 @@ import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import CircularProgress from "@mui/material/CircularProgress";
 import { set } from "date-fns";
 
 const theme = createTheme({
@@ -173,6 +172,7 @@ export default function Home() {
     week: number;
   }>({ day: "Monday", week: 0 });
   const [startDate, setStartDate] = useState<Date>(new Date());
+  const [isPortionModalOpen, setIsPortionModalOpen] = useState(false);
 
   const addRecipeToDay = useCallback(
     (day: keyof (typeof savedDays)[0], recipeIndex: number) => {
@@ -222,6 +222,7 @@ export default function Home() {
         setIsSnackbarOpen(true);
         return;
       }
+      // Could be "Unit conversion" instead, result may not always return grams!
       const conversionResult = parseFloat(resultPod?.text.split(" ")[0]);
       console.log("Parsed Wolfram Results:", pods, conversionResult);
       setSelectedItems((prevItems) =>

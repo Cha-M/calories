@@ -24,6 +24,7 @@ export async function searchItems(query: string): Promise<SearchResults> {
 }
 
 export async function askWolfram(query: string): Promise<string> {
+  // &pageNumber=2
   try {
     const response = await fetch(`/api/wolfram?input=${encodeURIComponent(query)}`);
     if (!response.ok) {
