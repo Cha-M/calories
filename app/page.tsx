@@ -165,6 +165,7 @@ export default function Home() {
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [isUnitConversionModalOpen, setIsUnitConversionModalOpen] =
     useState(false);
+  const [isUnitConversionLoading, setIsUnitConversionLoading] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
   const [selectedDayAndWeek, setSelectedDayAndWeek] = useState<{
@@ -173,6 +174,7 @@ export default function Home() {
   }>({ day: "Monday", week: 0 });
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [isPortionModalOpen, setIsPortionModalOpen] = useState(false);
+  const [portion, setPortion] = useState(0);
 
   const addRecipeToDay = useCallback(
     (day: keyof (typeof savedDays)[0], recipeIndex: number) => {
@@ -206,6 +208,7 @@ export default function Home() {
   const [unitConversionUnitText, setUnitConversionUnitText] = useState("");
   const wolframUnitConversion = useCallback(
     async (food: string, unit: string, index: number) => {
+      setIsUnitConversionLoading(true);
       const xmlString = await askWolfram(`mass of ${unit} of ${food} in grams`);
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, "application/xml");
@@ -217,13 +220,32 @@ export default function Home() {
       }));
 
       const resultPod = pods.find((pod) => pod.title === "Result");
-      if (!resultPod || !resultPod.text) {
+      const unitConversionPod = pods.find(
+        (pod) => pod.title === "Unit conversion",
+      );
+      if (
+        (!resultPod || !resultPod.text) &&
+        (!unitConversionPod || !unitConversionPod.text)
+      ) {
         setSnackbarMessage("Could not parse conversion result from Wolfram");
         setIsSnackbarOpen(true);
         return;
       }
       // Could be "Unit conversion" instead, result may not always return grams!
-      const conversionResult = parseFloat(resultPod?.text.split(" ")[0]);
+      let conversionResult: number;
+
+      if (unitConversionPod && unitConversionPod.text.includes("gram")) {
+        conversionResult = parseFloat(unitConversionPod.text.split(" ")[0]);
+      } else if (resultPod && resultPod.text.includes("gram")) {
+        conversionResult = parseFloat(resultPod.text.split(" ")[0]);
+      } else {
+        setSnackbarMessage("Wolfram result did not include grams");
+        setIsSnackbarOpen(true);
+        setUnitConversionUnitText("");
+        setIsUnitConversionLoading(false);
+        return;
+      }
+
       console.log("Parsed Wolfram Results:", pods, conversionResult);
       setSelectedItems((prevItems) =>
         prevItems.map((item, i) =>
@@ -236,6 +258,7 @@ export default function Home() {
       setIsSnackbarOpen(true);
       setIsUnitConversionModalOpen(false);
       setUnitConversionUnitText("");
+      setIsUnitConversionLoading(false);
       return;
     },
     [],
@@ -249,7 +272,11 @@ export default function Home() {
             dateAdapter={AdapterDateFns}
             adapterLocale={enGB}
           >
-            <DatePicker label="Start of week" defaultValue={new Date()} />
+            <DatePicker
+              label="Start of record"
+              defaultValue={startDate}
+              onChange={(e) => setStartDate(e as Date)}
+            />
           </LocalizationProvider>
           <div className="flex items-center gap-3">
             <label className="font-medium text-sm text-gray-600">Week</label>
@@ -612,6 +639,7 @@ export default function Home() {
                                   />
                                   <Button
                                     size="small"
+                                    loading={isUnitConversionLoading}
                                     variant="contained"
                                     onClick={() =>
                                       wolframUnitConversion(
@@ -756,7 +784,7 @@ export default function Home() {
                     </Button>
                     {isPortionModalOpen && (
                       <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
+                        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[40vh]">
                           <div className="flex justify-end">
                             <IconButton
                               onMouseDown={(e) => e.preventDefault()}
@@ -769,26 +797,38 @@ export default function Home() {
                             </IconButton>
                           </div>
                           <p className="mt-2">
-                            Enter the portion size as a percentage of the original
-                            recipe (e.g. 50 for half, 200 for double)
+                            Enter the portion size as a percentage of the
+                            original recipe (e.g. 50 for half, 200 for double)
                           </p>
-                          <Input
-                            placeholder="Enter portion size (%)"
-                            type="number"
-                            onChange={(e) => {
-                              const portion = parseFloat(e.target.value) / 100;
-                              const updatedRecipes = [...recipes];
-                              updatedRecipes.push({
-                                ...recipe,
-                                name: `${recipe.name} (${e.target.value}%)`,
-                                foods: recipe.foods.map((food) => ({
-                                  ...food,
-                                  amount: food.amount * portion,
-                                })),
-                              });
-                              setRecipes(updatedRecipes);
-                            }}
-                          />
+                          <div className="mt-2">
+                            <Input
+                              placeholder="Enter portion size (%)"
+                              type="number"
+                              onChange={(e) =>
+                                setPortion(parseFloat(e.target.value))
+                              }
+                            />
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={(e) => {
+                                const portionPercentage = portion / 100;
+                                const updatedRecipes = [...recipes];
+                                updatedRecipes.push({
+                                  ...recipe,
+                                  name: `${recipe.name} (${portion}%)`,
+                                  foods: recipe.foods.map((food) => ({
+                                    ...food,
+                                    amount: food.amount * portionPercentage,
+                                  })),
+                                });
+                                setRecipes(updatedRecipes);
+                                setIsPortionModalOpen(false);
+                              }}
+                            >
+                              Save portion
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     )}
