@@ -368,7 +368,7 @@ export default function Home() {
                         setIsAddMealModalOpen(true);
                       }}
                     >
-                      <AddIcon />
+                      <AddIcon color="primary" />
                     </IconButton>
                   </TableCell>
                 ))}
@@ -416,8 +416,7 @@ export default function Home() {
               Edit recipes
             </Button>
             <Button
-              variant="contained"
-              color="inherit"
+              variant="outlined"
               onClick={() =>
                 setSavedDays((prev) => [
                   ...prev,
@@ -491,24 +490,30 @@ export default function Home() {
                       {filteredResults.foods.map(
                         (item: FoodWithOpen, index: number) => (
                           <div
-                            className="w-[60%] mt-2 p-2 flex justify-between text-left items-start border rounded"
+                            className="p-4 border border-gray-200 rounded-xl flex justify-between text-left items-start bg-white shadow-sm hover:shadow-md transition-all duration-200"
                             key={`${item.fdcId}-${index}`}
                           >
-                            <div>
-                              {toTitleCase(item.description)}
-                              {/* yeah need more info than this even at the start */}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-gray-800 truncate">
+                                {toTitleCase(item.description)}
+                              </p>
                               {item.open && (
-                                <div>
+                                <div className="mt-2 text-sm text-gray-500 space-y-1">
                                   {item.brandName && (
-                                    <div>
-                                      <span>Brand name:</span>{" "}
+                                    <p>
+                                      <span className="font-medium text-gray-700">
+                                        Brand:
+                                      </span>{" "}
                                       {toTitleCase(item.brandName)}
-                                    </div>
+                                    </p>
                                   )}
                                   {item.foodCategory && (
-                                    <div>
-                                      <span>Category:</span> {item.foodCategory}
-                                    </div>
+                                    <p>
+                                      <span className="font-medium text-gray-700">
+                                        Category:
+                                      </span>{" "}
+                                      {item.foodCategory}
+                                    </p>
                                   )}
                                 </div>
                               )}
@@ -544,6 +549,7 @@ export default function Home() {
                                   setSearchResults(null);
                                 }}
                                 size="small"
+                                color="primary"
                               >
                                 <AddIcon fontSize="small" />
                               </IconButton>
@@ -563,7 +569,7 @@ export default function Home() {
                       return (
                         <li
                           key={`${item.fdcId}-${index}-selection`}
-                          className="p-4 border rounded"
+                          className="p-5 border border-gray-200 rounded-xl mt-4 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
                         >
                           <div className="flex justify-between items-center mb-2">
                             <h3 className="text-xl font-semibold truncate pr-2">
@@ -581,89 +587,86 @@ export default function Home() {
                               <CloseIcon fontSize="small" />
                             </IconButton>
                           </div>
-                          <div className="flex flex-row items-center align-center">
-                            <p>
-                              Weight:
-                              <Input
-                                type="number"
-                                value={item.amount}
-                                onChange={(e) => {
-                                  const updatedItems = [...selectedItems];
-                                  updatedItems[index] = {
-                                    ...item,
-                                    amount: parseInt(e.target.value) || 1,
-                                  };
-                                  setSelectedItems(updatedItems);
-                                }}
-                                disableUnderline
-                                sx={{
-                                  width: "6ch",
-                                  "& input": { textAlign: "center" },
-                                }}
-                                inputProps={{ min: 1, max: 10000 }}
-                              />
-                              g
-                            </p>
-                            <div className="w-2" />
+                          <div className="flex items-center text-sm gap-2">
+                            <Input
+                              type="number"
+                              value={item.amount}
+                              onChange={(e) => {
+                                const updatedItems = [...selectedItems];
+                                updatedItems[index] = {
+                                  ...item,
+                                  amount: parseInt(e.target.value) || 1,
+                                };
+                                setSelectedItems(updatedItems);
+                              }}
+                              disableUnderline
+                              sx={{
+                                width: "5ch",
+                                fontSize: "0.875rem",
+                                "& input": { textAlign: "center", padding: 0 },
+                                borderBottom: "1px solid #e5e7eb",
+                              }}
+                              inputProps={{ min: 1, max: 10000 }}
+                            />
+                            <span className="text-gray-400 w-4">g</span>
                             <Button
                               size="small"
                               onClick={() => setIsUnitConversionModalOpen(true)}
                             >
                               Convert
                             </Button>
-                            {isUnitConversionModalOpen && (
-                              <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-                                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
-                                  <div className="flex justify-end">
-                                    <IconButton
-                                      onMouseDown={(e) => e.preventDefault()}
-                                      onClick={() => {
-                                        setUnitConversionUnitText("");
-                                        setIsUnitConversionModalOpen(false);
-                                      }}
-                                      size="small"
-                                    >
-                                      <CloseIcon fontSize="small" />
-                                    </IconButton>
-                                  </div>
-                                  <p className="mt-2">
-                                    Enter the unit you wish to convert to grams
-                                    eg. 1 UK tablespoon
-                                  </p>
-                                  <Input
-                                    placeholder="Enter unit"
-                                    value={unitConversionUnitText}
-                                    onChange={(e) =>
-                                      setUnitConversionUnitText(e.target.value)
-                                    }
-                                  />
-                                  <Button
-                                    size="small"
-                                    loading={isUnitConversionLoading}
-                                    variant="contained"
-                                    onClick={() =>
-                                      wolframUnitConversion(
-                                        item.description,
-                                        unitConversionUnitText,
-                                        index,
-                                      )
-                                    }
-                                  >
-                                    Convert
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                            <div className="w-2" />
-                            <p>
-                              KCAL:{" "}
+                            <span className="text-gray-400 text-xs tabular-nums">
                               {energyNutrient
-                                ? Math.round(
-                                    energyNutrient.value * (item.amount / 100),
-                                  )
+                                ? `${Math.round(energyNutrient.value * (item.amount / 100))} kcal`
                                 : "N/A"}
-                            </p>
+                            </span>
+                            {/* Moved the modal outside the flex container to avoid layout issues */}
                           </div>
+                          {isUnitConversionModalOpen && ( // This modal needs to be outside the list item's flex context
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                              <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
+                                <div className="flex justify-end">
+                                  <IconButton
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                      setUnitConversionUnitText("");
+                                      setIsUnitConversionModalOpen(false);
+                                    }}
+                                    size="small"
+                                  >
+                                    <CloseIcon fontSize="small" />
+                                  </IconButton>
+                                </div>
+                                <p className="mt-2 text-gray-700">
+                                  Enter the unit you wish to convert to grams
+                                  e.g., &quot;1 UK tablespoon&quot;
+                                </p>
+                                <Input
+                                  placeholder="Enter unit"
+                                  value={unitConversionUnitText}
+                                  onChange={(e) =>
+                                    setUnitConversionUnitText(e.target.value)
+                                  }
+                                  fullWidth
+                                  sx={{ mt: 1, mb: 2 }}
+                                />
+                                <Button
+                                  size="small"
+                                  loading={isUnitConversionLoading}
+                                  variant="contained"
+                                  onClick={() =>
+                                    wolframUnitConversion(
+                                      item.description,
+                                      unitConversionUnitText,
+                                      index,
+                                    )
+                                  }
+                                >
+                                  Convert
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </li>
                       );
                     })}
@@ -679,7 +682,6 @@ export default function Home() {
                         { name: "New recipe", foods: selectedItems },
                       ])
                     }
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
                   >
                     New recipe
                   </Button>
@@ -687,7 +689,7 @@ export default function Home() {
                 {recipes.map((recipe, index) => (
                   <div
                     key={`recipe-editor-${index}`}
-                    className="p-4 border rounded mt-6 flex flex-col gap-2"
+                    className="p-5 border border-gray-200 rounded-xl mt-6 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     <div className="flex justify-between items-center gap-2">
                       <Input
@@ -704,15 +706,24 @@ export default function Home() {
                           setRecipes(updatedRecipes);
                         }}
                       />
-                      <IconButton
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          removeRecipe(index);
-                        }}
-                        size="small"
-                      >
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => setIsPortionModalOpen(true)}
+                        >
+                          Portion
+                        </Button>
+                        <IconButton
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            removeRecipe(index);
+                          }}
+                          size="small"
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </div>
                     </div>
                     {recipe.foods.map(
                       (food: FoodWithAmount, foodIndex: number) => {
@@ -722,68 +733,70 @@ export default function Home() {
                         return (
                           <div
                             key={`${food.fdcId}-${foodIndex}`}
-                            className="ml-4 flex items-center gap-1"
+                            className="flex items-center text-sm gap-2"
                           >
-                            <p className="flex items-center gap-1">
-                              <Input
-                                type="number"
-                                value={food.amount}
-                                onChange={(e) => {
-                                  const newAmount =
-                                    parseInt(e.target.value) || 1;
-                                  const updatedRecipes = [...recipes];
-                                  const updatedFoods = [...recipe.foods];
-                                  updatedFoods[foodIndex] = {
-                                    ...food,
-                                    amount: newAmount,
-                                  };
-                                  updatedRecipes[index] = {
-                                    ...recipe,
-                                    foods: updatedFoods,
-                                  };
-                                  setRecipes(updatedRecipes);
-                                }}
-                                disableUnderline
-                                sx={{
-                                  width: "6ch",
-                                  "& input": { textAlign: "center" },
-                                }}
-                                inputProps={{ min: 1, max: 10000 }}
-                              />
-                              g {toTitleCase(food.description)}
-                            </p>
-                            <div className="w-2" />
-                            <p>
-                              KCAL:{" "}
+                            <Input
+                              type="number"
+                              value={food.amount}
+                              onChange={(e) => {
+                                const newAmount = parseInt(e.target.value) || 1;
+                                const updatedRecipes = [...recipes];
+                                const updatedFoods = [...recipe.foods];
+                                updatedFoods[foodIndex] = {
+                                  ...food,
+                                  amount: newAmount,
+                                };
+                                updatedRecipes[index] = {
+                                  ...recipe,
+                                  foods: updatedFoods,
+                                };
+                                setRecipes(updatedRecipes);
+                              }}
+                              disableUnderline
+                              sx={{
+                                width: "5ch",
+                                fontSize: "0.875rem",
+                                "& input": { textAlign: "center", padding: 0 },
+                                borderBottom: "1px solid #e5e7eb",
+                              }}
+                              inputProps={{ min: 1, max: 10000 }}
+                            />
+                            <span className="text-gray-400 w-4">g</span>
+                            <span className="font-medium text-gray-700 flex-1 truncate">
+                              {toTitleCase(food.description)}
+                            </span>
+                            <span className="text-gray-400 text-xs tabular-nums">
                               {energyNutrient
-                                ? Math.round(
-                                    energyNutrient.value * (food.amount / 100),
-                                  )
+                                ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
                                 : "N/A"}
-                            </p>
+                            </span>
                           </div>
                         );
                       },
                     )}
-                    Total KCAL:{" "}
-                    {Math.round(
-                      recipe.foods.reduce(
-                        (total: number, food: FoodWithAmount) => {
-                          const kcal =
-                            food.foodNutrients.find(
-                              (nutrient: FoodNutrient) =>
-                                nutrient.nutrientId === 1008,
-                            )?.value || 0;
-                          return total + kcal * (food.amount / 100);
-                        },
-                        0,
-                      ),
-                    )}
-                    <Button onClick={() => setIsPortionModalOpen(true)}>
-                      Portion
-                    </Button>
+                    <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-400 tracking-widest">
+                        Total Energy
+                      </span>
+                      <span className="text-lg font-bold">
+                        {Math.round(
+                          recipe.foods.reduce(
+                            (total: number, food: FoodWithAmount) => {
+                              const kcal =
+                                food.foodNutrients.find(
+                                  (nutrient: FoodNutrient) =>
+                                    nutrient.nutrientId === 1008,
+                                )?.value || 0;
+                              return total + kcal * (food.amount / 100);
+                            },
+                            0,
+                          ),
+                        )}{" "}
+                        KCAL
+                      </span>
+                    </div>
                     {isPortionModalOpen && (
-                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                         <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[40vh]">
                           <div className="flex justify-end">
                             <IconButton
@@ -796,14 +809,15 @@ export default function Home() {
                               <CloseIcon fontSize="small" />
                             </IconButton>
                           </div>
-                          <p className="mt-2">
+                          <p className="mt-2 text-gray-700">
                             Enter the portion size as a percentage of the
                             original recipe (e.g. 50 for half, 200 for double)
                           </p>
-                          <div className="mt-2">
+                          <div className="mt-4 flex flex-col gap-4">
                             <Input
-                              placeholder="Enter portion size (%)"
+                              placeholder="Portion %"
                               type="number"
+                              fullWidth
                               onChange={(e) =>
                                 setPortion(parseFloat(e.target.value))
                               }
@@ -852,7 +866,7 @@ export default function Home() {
                 {recipes.length === 0 && (
                   <p>
                     No recipes created yet. Create a recipe in the &quot;Edit
-                    Recipes&quot; section to add meals to your plan.
+                    Recipes&quot; section to add meals to your record.
                   </p>
                 )}
                 {recipes.length > 0 && (
@@ -860,10 +874,10 @@ export default function Home() {
                     {recipes.map((recipe, index) => (
                       <div
                         key={`meal-modal-recipe-${index}`}
-                        className="p-4 border rounded mt-4 flex flex-col gap-2 relative"
+                        className="p-5 border border-gray-200 rounded-xl mt-4 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
                       >
                         <div className="flex justify-between items-center gap-2">
-                          <p className="text-lg font-semibold flex-1">
+                          <p className="text-lg font-bold text-gray-800 flex-1">
                             {recipe.name}
                           </p>
                           <IconButton
@@ -871,22 +885,22 @@ export default function Home() {
                               addRecipeToDay(selectedDayAndWeek.day, index)
                             }
                             size="small"
-                            color="primary" // Added color for visibility
+                            color="primary"
                           >
                             <AddIcon fontSize="small" />
                           </IconButton>
                         </div>
-                        {recipe.foods.map(
-                          (food: FoodWithAmount, foodIndex: number) => {
-                            const energyNutrient = food.foodNutrients.find(
-                              (n: FoodNutrient) => n.nutrientId === 1008,
-                            );
-                            return (
-                              <div
-                                key={`${food.fdcId}-${foodIndex}`}
-                                className="ml-4"
-                              >
-                                <p>
+                        <div className="flex flex-col gap-1.5">
+                          {recipe.foods.map(
+                            (food: FoodWithAmount, foodIndex: number) => {
+                              const energyNutrient = food.foodNutrients.find(
+                                (n: FoodNutrient) => n.nutrientId === 1008,
+                              );
+                              return (
+                                <div
+                                  key={`${food.fdcId}-${foodIndex}`}
+                                  className="flex items-center text-sm gap-2"
+                                >
                                   <Input
                                     type="number"
                                     value={food.amount}
@@ -910,40 +924,51 @@ export default function Home() {
                                     }}
                                     disableUnderline
                                     sx={{
-                                      width: "6ch",
-                                      "& input": { textAlign: "center" },
+                                      width: "5ch",
+                                      fontSize: "0.875rem",
+                                      "& input": {
+                                        textAlign: "center",
+                                        padding: 0,
+                                      },
+                                      borderBottom: "1px solid #e5e7eb",
                                     }}
                                     inputProps={{ min: 1, max: 10000 }}
                                   />
-                                  g {toTitleCase(food.description)}
-                                </p>
-                                <p>
-                                  KCAL:{" "}
-                                  {energyNutrient
-                                    ? Math.round(
-                                        energyNutrient.value *
-                                          (food.amount / 100),
-                                      )
-                                    : "N/A"}
-                                </p>
-                              </div>
-                            );
-                          },
-                        )}
-                        Total KCAL:{" "}
-                        {Math.round(
-                          recipe.foods.reduce(
-                            (total: number, food: FoodWithAmount) => {
-                              const kcal =
-                                food.foodNutrients.find(
-                                  (nutrient: FoodNutrient) =>
-                                    nutrient.nutrientId === 1008,
-                                )?.value || 0;
-                              return total + kcal * (food.amount / 100);
+                                  <span className="text-gray-400 w-4">g</span>
+                                  <span className="font-medium text-gray-700 flex-1 truncate">
+                                    {toTitleCase(food.description)}
+                                  </span>
+                                  <span className="text-gray-400 text-xs tabular-nums">
+                                    {energyNutrient
+                                      ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                              );
                             },
-                            0,
-                          ),
-                        )}
+                          )}
+                        </div>
+                        <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
+                          <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">
+                            Total Energy
+                          </span>
+                          <span className="text-lg font-bold text-blue-600">
+                            {Math.round(
+                              recipe.foods.reduce(
+                                (total: number, food: FoodWithAmount) => {
+                                  const kcal =
+                                    food.foodNutrients.find(
+                                      (nutrient: FoodNutrient) =>
+                                        nutrient.nutrientId === 1008,
+                                    )?.value || 0;
+                                  return total + kcal * (food.amount / 100);
+                                },
+                                0,
+                              ),
+                            )}{" "}
+                            KCAL
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
