@@ -949,10 +949,10 @@ export default function Home() {
                           )}
                         </div>
                         <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
-                          <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">
-                            Total Energy
+                          <span className="text-xs font-bold text-gray-400 tracking-widest">
+                            Total Calories
                           </span>
-                          <span className="text-lg font-bold text-blue-600">
+                          <span className="text-lg font-bold">
                             {Math.round(
                               recipe.foods.reduce(
                                 (total: number, food: FoodWithAmount) => {
