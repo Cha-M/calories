@@ -449,14 +449,15 @@ export default function Home() {
                     <CloseIcon />
                   </IconButton>
                 </div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-row gap-2">
+                <div className="flex flex-col gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
+                  <div className="flex flex-row gap-2 bg-white p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-blue-500 transition-all">
                     <Input
-                      className="flex-1"
+                      className="flex-1 px-3"
                       type="text"
                       placeholder="Search for food..."
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      disableUnderline
                       onKeyDown={async (e) => {
                         if (e.key === "Enter") {
                           searchHandler();
@@ -471,19 +472,30 @@ export default function Home() {
                       Search
                     </Button>
                   </div>
-                  <Input
-                    className="w-full"
-                    type="text"
-                    placeholder="Filter results..."
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
-                  />
-                  <div>
-                    <Checkbox
-                      checked={brandFilter}
-                      onChange={(e) => setBrandFilter(e.target.checked)}
-                    />
-                    <label>Show branded items</label>
+
+                  {/* filter needs focus colour if the other has it */}
+                  <div className="flex flex-row items-center gap-4">
+                    <div className="flex-1 flex items-center bg-white px-3 py-1 rounded-lg border border-zinc-300 shadow-sm">
+                      <Input
+                        className="w-full text-sm"
+                        type="text"
+                        placeholder="Filter items..."
+                        value={searchFilter}
+                        onChange={(e) => setSearchFilter(e.target.value)}
+                        disableUnderline
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 whitespace-nowrap pr-1">
+                      <Checkbox
+                        size="small"
+                        checked={brandFilter}
+                        onChange={(e) => setBrandFilter(e.target.checked)}
+                        sx={{ p: 0.5 }}
+                      />
+                      <span className="text-sm text-gray-600 font-medium select-none">
+                        Show branded
+                      </span>
+                    </div>
                   </div>
                 </div>
                 {filteredResults && !areResultsLoading && (
@@ -613,6 +625,7 @@ export default function Home() {
                             <span className="text-gray-400 w-4">g</span>
                             <Button
                               size="small"
+                              variant="outlined"
                               onClick={() => setIsUnitConversionModalOpen(true)}
                             >
                               Convert
