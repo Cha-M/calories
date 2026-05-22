@@ -1604,4 +1604,5 @@ const exampleSearchResults: SearchResults = {
 export interface Recipe {
   name: string;
   foods: FoodWithAmount[];
+  open: boolean;
 }
