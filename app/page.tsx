@@ -450,9 +450,9 @@ export default function Home() {
                   </IconButton>
                 </div>
                 <div className="flex flex-col gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
-                  <div className="flex flex-row gap-2 bg-white p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-blue-500 transition-all">
+                  <div className="flex flex-row gap-2 bg-white p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all">
                     <Input
-                      className="flex-1 px-3"
+                      className="flex-1"
                       type="text"
                       placeholder="Search for food..."
                       value={query}
@@ -664,6 +664,15 @@ export default function Home() {
                                   }
                                   fullWidth
                                   sx={{ mt: 1, mb: 2 }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      wolframUnitConversion(
+                                        item.description,
+                                        unitConversionUnitText,
+                                        index,
+                                      );
+                                    }
+                                  }}
                                 />
                                 <Button
                                   size="small"
