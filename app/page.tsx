@@ -236,6 +236,7 @@ export default function Home() {
       // Could be "Unit conversion" instead, result may not always return grams!
       let conversionResult: number;
 
+      // Sometimes it returns 2 results, even considering this below
       if (unitConversionPod && unitConversionPod.text.includes("gram")) {
         conversionResult = parseFloat(unitConversionPod.text.split(" ")[0]);
       } else if (resultPod && resultPod.text.includes("gram")) {
@@ -441,7 +442,7 @@ export default function Home() {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[70vw] max-h-[80vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Edit Recipes</h2>
+                  <h2 className="text-2xl font-semibold">Edit Recipes</h2>
                   <IconButton
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setIsAddRecipeModalOpen(false)}
@@ -450,7 +451,7 @@ export default function Home() {
                   </IconButton>
                 </div>
                 <div className="flex flex-col gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
-                  <div className="flex flex-row gap-2 bg-white p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all">
+                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all">
                     <Input
                       className="flex-1"
                       type="text"
@@ -458,7 +459,7 @@ export default function Home() {
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       disableUnderline
-                      onKeyDown={async (e) => {
+                      onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           searchHandler();
                         }
@@ -475,7 +476,7 @@ export default function Home() {
 
                   {/* filter needs focus colour if the other has it */}
                   <div className="flex flex-row items-center gap-4">
-                    <div className="flex-1 flex items-center bg-white px-3 py-1 rounded-lg border border-zinc-300 shadow-sm">
+                    <div className="flex-1 flex items-center bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm">
                       <Input
                         className="w-full text-sm"
                         type="text"
@@ -500,6 +501,9 @@ export default function Home() {
                 </div>
                 {filteredResults && !areResultsLoading && (
                   <div className="mt-8 w-full">
+                    <h3 className="text-xs font-semibold text-gray-400 tracking-widest mb-3 ml-1">
+                      Search Results
+                    </h3>
                     <ul className="flex flex-col gap-2">
                       {filteredResults.foods.map(
                         (item: FoodWithOpen, index: number) => (
@@ -508,7 +512,7 @@ export default function Home() {
                             key={`${item.fdcId}-${index}`}
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-gray-800 truncate">
+                              <p className="font-semibold text-gray-800 truncate">
                                 {toTitleCase(item.description)}
                               </p>
                               {item.open && (
@@ -575,309 +579,380 @@ export default function Home() {
                   </div>
                 )}
                 {selectedItems.length > 0 && (
-                  <ul className="flex flex-col gap-2">
-                    {selectedItems.map((item, index) => {
-                      const energyNutrient = item.foodNutrients.find(
-                        (n: FoodNutrient) => n.nutrientId === 1008,
-                      );
-                      return (
-                        <li
-                          key={`${item.fdcId}-${index}-selection`}
-                          className="p-5 border border-gray-200 rounded-xl mt-4 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
-                        >
-                          <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-xl font-semibold truncate pr-2">
-                              {toTitleCase(item.description)}
-                              {item.brandName && ", "}
-                              {item.brandName && toTitleCase(item.brandName)}
-                            </h3>
+                  <div className="mt-12 pt-8 border-t border-zinc-200">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h3 className="text-xs font-semibold text-gray-400 tracking-widest">
+                        Ingredients
+                      </h3>
+                      <span className="bg-zinc-100 text-zinc-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        {selectedItems.length} item
+                        {selectedItems.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <ul className="flex flex-col gap-2">
+                      {selectedItems.map((item, index) => {
+                        const energyNutrient = item.foodNutrients.find(
+                          (n: FoodNutrient) => n.nutrientId === 1008,
+                        );
+                        return (
+                          <li
+                            key={`${item.fdcId}-${index}-selection`}
+                            className="p-5 border border-gray-200 rounded-xl flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                          >
+                            <div className="flex justify-between items-center mb-2">
+                              <h3 className="font-semibold truncate pr-2">
+                                {toTitleCase(item.description)}
+                                {item.brandName && ", "}
+                                {item.brandName && toTitleCase(item.brandName)}
+                              </h3>
+                              <div>
+                                <IconButton
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => {
+                                    const updatedItems = [...selectedItems];
+                                    updatedItems[index] = {
+                                      ...item,
+                                      open: !item.open,
+                                    };
+                                    setSelectedItems(updatedItems);
+                                  }}
+                                >
+                                  {item.open ? (
+                                    <KeyboardArrowUpIcon />
+                                  ) : (
+                                    <KeyboardArrowDownIcon />
+                                  )}
+                                </IconButton>
+                                <IconButton
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => removeSelectedItem(index)}
+                                  size="small"
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </div>
+                            </div>
+                            {item.open && (
+                              <div className="flex items-center text-sm gap-2">
+                                <Input
+                                  type="number"
+                                  value={item.amount}
+                                  onChange={(e) => {
+                                    const updatedItems = [...selectedItems];
+                                    updatedItems[index] = {
+                                      ...item,
+                                      amount: parseInt(e.target.value) || 1,
+                                    };
+                                    setSelectedItems(updatedItems);
+                                  }}
+                                  disableUnderline
+                                  sx={{
+                                    width: "5ch",
+                                    fontSize: "0.875rem",
+                                    "& input": {
+                                      textAlign: "center",
+                                      padding: 0,
+                                    },
+                                    borderBottom: "1px solid #e5e7eb",
+                                  }}
+                                  inputProps={{ min: 1, max: 10000 }}
+                                />
+                                <span className="text-gray-400 w-4">g</span>
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  onClick={() =>
+                                    setIsUnitConversionModalOpen(true)
+                                  }
+                                >
+                                  Convert
+                                </Button>
+                                <span className="text-gray-400 text-xs tabular-nums">
+                                  {energyNutrient
+                                    ? `${Math.round(energyNutrient.value * (item.amount / 100))} kcal`
+                                    : "N/A"}
+                                </span>
+                              </div>
+                            )}
+                            {isUnitConversionModalOpen && (
+                              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                                <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw]">
+                                  <div className="flex justify-end">
+                                    <IconButton
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      onClick={() => {
+                                        setUnitConversionUnitText("");
+                                        setIsUnitConversionModalOpen(false);
+                                      }}
+                                      size="small"
+                                    >
+                                      <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                  </div>
+                                  <p className="mt-2 text-gray-700">
+                                    Enter the unit you wish to convert to grams
+                                    e.g., &quot;1 UK tablespoon&quot;
+                                  </p>
+                                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all mt-4">
+                                    <Input
+                                      placeholder="Enter unit..."
+                                      value={unitConversionUnitText}
+                                      onChange={(e) =>
+                                        setUnitConversionUnitText(
+                                          e.target.value,
+                                        )
+                                      }
+                                      className="flex-1"
+                                      disableUnderline
+                                      onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                          wolframUnitConversion(
+                                            item.description,
+                                            unitConversionUnitText,
+                                            index,
+                                          );
+                                        }
+                                      }}
+                                    />
+                                    <Button
+                                      size="small"
+                                      loading={isUnitConversionLoading}
+                                      variant="contained"
+                                      onClick={() =>
+                                        wolframUnitConversion(
+                                          item.description,
+                                          unitConversionUnitText,
+                                          index,
+                                        )
+                                      }
+                                    >
+                                      Convert
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <div className="mt-6">
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={() => {
+                          setRecipes([
+                            ...recipes,
+                            {
+                              name: "New recipe",
+                              foods: selectedItems,
+                              open: false,
+                            },
+                          ]);
+                          setSelectedItems([]);
+                        }}
+                      >
+                        Save as new recipe
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {recipes.length > 0 && (
+                  <div className="mt-12 pt-8 border-t border-zinc-200">
+                    <h3 className="text-xs font-semibold text-gray-400 tracking-widest mb-4 ml-1">
+                      Saved Recipes
+                    </h3>
+                    {recipes.map((recipe, index) => (
+                      <div
+                        key={`recipe-editor-${index}`}
+                        className="p-5 border border-gray-200 rounded-xl mt-6 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
+                      >
+                        <div className="flex justify-between items-center gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Recipe name"
+                            className="flex-1"
+                            value={recipe.name}
+                            onChange={(e) => {
+                              const updatedRecipes = [...recipes];
+                              updatedRecipes[index] = {
+                                ...recipe,
+                                name: e.target.value,
+                              };
+                              setRecipes(updatedRecipes);
+                            }}
+                          />
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => setIsPortionModalOpen(true)}
+                            >
+                              Portion
+                            </Button>
                             <IconButton
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => {
-                                removeSelectedItem(index);
+                                removeRecipe(index);
                               }}
                               size="small"
                             >
                               <CloseIcon fontSize="small" />
                             </IconButton>
                           </div>
-                          <div className="flex items-center text-sm gap-2">
-                            <Input
-                              type="number"
-                              value={item.amount}
-                              onChange={(e) => {
-                                const updatedItems = [...selectedItems];
-                                updatedItems[index] = {
-                                  ...item,
-                                  amount: parseInt(e.target.value) || 1,
-                                };
-                                setSelectedItems(updatedItems);
-                              }}
-                              disableUnderline
-                              sx={{
-                                width: "5ch",
-                                fontSize: "0.875rem",
-                                "& input": { textAlign: "center", padding: 0 },
-                                borderBottom: "1px solid #e5e7eb",
-                              }}
-                              inputProps={{ min: 1, max: 10000 }}
-                            />
-                            <span className="text-gray-400 w-4">g</span>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => setIsUnitConversionModalOpen(true)}
-                            >
-                              Convert
-                            </Button>
-                            <span className="text-gray-400 text-xs tabular-nums">
-                              {energyNutrient
-                                ? `${Math.round(energyNutrient.value * (item.amount / 100))} kcal`
-                                : "N/A"}
-                            </span>
-                            {/* Moved the modal outside the flex container to avoid layout issues */}
-                          </div>
-                          {isUnitConversionModalOpen && ( // This modal needs to be outside the list item's flex context
-                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                              <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[30vh]">
-                                <div className="flex justify-end">
-                                  <IconButton
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => {
-                                      setUnitConversionUnitText("");
-                                      setIsUnitConversionModalOpen(false);
-                                    }}
-                                    size="small"
-                                  >
-                                    <CloseIcon fontSize="small" />
-                                  </IconButton>
-                                </div>
-                                <p className="mt-2 text-gray-700">
-                                  Enter the unit you wish to convert to grams
-                                  e.g., &quot;1 UK tablespoon&quot;
-                                </p>
+                        </div>
+                        {recipe.foods.map(
+                          (food: FoodWithAmount, foodIndex: number) => {
+                            const energyNutrient = food.foodNutrients.find(
+                              (n: FoodNutrient) => n.nutrientId === 1008,
+                            );
+                            return (
+                              <div
+                                key={`${food.fdcId}-${foodIndex}`}
+                                className="flex items-center text-sm gap-2"
+                              >
                                 <Input
-                                  placeholder="Enter unit"
-                                  value={unitConversionUnitText}
-                                  onChange={(e) =>
-                                    setUnitConversionUnitText(e.target.value)
-                                  }
+                                  type="number"
+                                  value={food.amount}
+                                  onChange={(e) => {
+                                    const newAmount =
+                                      parseInt(e.target.value) || 1;
+                                    const updatedRecipes = [...recipes];
+                                    const updatedFoods = [...recipe.foods];
+                                    updatedFoods[foodIndex] = {
+                                      ...food,
+                                      amount: newAmount,
+                                    };
+                                    updatedRecipes[index] = {
+                                      ...recipe,
+                                      foods: updatedFoods,
+                                    };
+                                    setRecipes(updatedRecipes);
+                                  }}
+                                  disableUnderline
+                                  sx={{
+                                    width: "5ch",
+                                    fontSize: "0.875rem",
+                                    "& input": {
+                                      textAlign: "center",
+                                      padding: 0,
+                                    },
+                                    borderBottom: "1px solid #e5e7eb",
+                                  }}
+                                  inputProps={{ min: 1, max: 10000 }}
+                                />
+                                <span className="text-gray-400 w-4">g</span>
+                                <span className="font-medium text-gray-700 flex-1 truncate">
+                                  {toTitleCase(food.description)}
+                                </span>
+                                <span className="text-gray-400 text-xs tabular-nums">
+                                  {energyNutrient
+                                    ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
+                                    : "N/A"}
+                                </span>
+                              </div>
+                            );
+                          },
+                        )}
+                        <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
+                          <span className="text-xs font-semibold text-gray-400 tracking-widest">
+                            Total Calories
+                          </span>
+                          <span className="text-lg font-semibold">
+                            {Math.round(
+                              recipe.foods.reduce(
+                                (total: number, food: FoodWithAmount) => {
+                                  const kcal =
+                                    food.foodNutrients.find(
+                                      (nutrient: FoodNutrient) =>
+                                        nutrient.nutrientId === 1008,
+                                    )?.value || 0;
+                                  return total + kcal * (food.amount / 100);
+                                },
+                                0,
+                              ),
+                            )}{" "}
+                            KCAL
+                          </span>
+                        </div>
+                        {isPortionModalOpen && (
+                          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[40vh]">
+                              <div className="flex justify-end">
+                                <IconButton
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => {
+                                    setIsPortionModalOpen(false);
+                                  }}
+                                  size="small"
+                                >
+                                  <CloseIcon fontSize="small" />
+                                </IconButton>
+                              </div>
+                              <p className="mt-2 text-gray-700">
+                                Enter the portion size as a percentage of the
+                                original recipe (e.g. 50 for half, 200 for
+                                double)
+                              </p>
+                              <div className="mt-4 flex flex-col gap-4">
+                                <Input
+                                  placeholder="Portion %"
+                                  type="number"
                                   fullWidth
-                                  sx={{ mt: 1, mb: 2 }}
+                                  onChange={(e) =>
+                                    setPortion(parseFloat(e.target.value))
+                                  }
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
-                                      wolframUnitConversion(
-                                        item.description,
-                                        unitConversionUnitText,
-                                        index,
-                                      );
+                                      {
+                                        const portionPercentage = portion / 100;
+                                        const updatedRecipes = [...recipes];
+                                        updatedRecipes.push({
+                                          ...recipe,
+                                          name: `${recipe.name} (${portion}%)`,
+                                          foods: recipe.foods.map((food) => ({
+                                            ...food,
+                                            amount:
+                                              food.amount * portionPercentage,
+                                          })),
+                                        });
+                                        setRecipes(updatedRecipes);
+                                        setPortion(0);
+                                        setIsPortionModalOpen(false);
+                                      }
                                     }
                                   }}
                                 />
                                 <Button
                                   size="small"
-                                  loading={isUnitConversionLoading}
                                   variant="contained"
-                                  onClick={() =>
-                                    wolframUnitConversion(
-                                      item.description,
-                                      unitConversionUnitText,
-                                      index,
-                                    )
-                                  }
+                                  disabled={portion <= 0 || !portion}
+                                  onClick={() => {
+                                    const portionPercentage = portion / 100;
+                                    const updatedRecipes = [...recipes];
+                                    updatedRecipes.push({
+                                      ...recipe,
+                                      name: `${recipe.name} (${portion}%)`,
+                                      foods: recipe.foods.map((food) => ({
+                                        ...food,
+                                        amount: food.amount * portionPercentage,
+                                      })),
+                                    });
+                                    setRecipes(updatedRecipes);
+                                    setPortion(0);
+                                    setIsPortionModalOpen(false);
+                                  }}
                                 >
-                                  Convert
+                                  Save portion
                                 </Button>
                               </div>
                             </div>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-                <div className="mt-6">
-                  <Button
-                    variant="contained"
-                    disabled={selectedItems.length === 0}
-                    onClick={() =>
-                      setRecipes([
-                        ...recipes,
-                        {
-                          name: "New recipe",
-                          foods: selectedItems,
-                          open: false,
-                        },
-                      ])
-                    }
-                  >
-                    New recipe
-                  </Button>
-                </div>
-                {recipes.map((recipe, index) => (
-                  <div
-                    key={`recipe-editor-${index}`}
-                    className="p-5 border border-gray-200 rounded-xl mt-6 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="flex justify-between items-center gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Recipe name"
-                        className="flex-1"
-                        value={recipe.name}
-                        onChange={(e) => {
-                          const updatedRecipes = [...recipes];
-                          updatedRecipes[index] = {
-                            ...recipe,
-                            name: e.target.value,
-                          };
-                          setRecipes(updatedRecipes);
-                        }}
-                      />
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => setIsPortionModalOpen(true)}
-                        >
-                          Portion
-                        </Button>
-                        <IconButton
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => {
-                            removeRecipe(index);
-                          }}
-                          size="small"
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    {recipe.foods.map(
-                      (food: FoodWithAmount, foodIndex: number) => {
-                        const energyNutrient = food.foodNutrients.find(
-                          (n: FoodNutrient) => n.nutrientId === 1008,
-                        );
-                        return (
-                          <div
-                            key={`${food.fdcId}-${foodIndex}`}
-                            className="flex items-center text-sm gap-2"
-                          >
-                            <Input
-                              type="number"
-                              value={food.amount}
-                              onChange={(e) => {
-                                const newAmount = parseInt(e.target.value) || 1;
-                                const updatedRecipes = [...recipes];
-                                const updatedFoods = [...recipe.foods];
-                                updatedFoods[foodIndex] = {
-                                  ...food,
-                                  amount: newAmount,
-                                };
-                                updatedRecipes[index] = {
-                                  ...recipe,
-                                  foods: updatedFoods,
-                                };
-                                setRecipes(updatedRecipes);
-                              }}
-                              disableUnderline
-                              sx={{
-                                width: "5ch",
-                                fontSize: "0.875rem",
-                                "& input": { textAlign: "center", padding: 0 },
-                                borderBottom: "1px solid #e5e7eb",
-                              }}
-                              inputProps={{ min: 1, max: 10000 }}
-                            />
-                            <span className="text-gray-400 w-4">g</span>
-                            <span className="font-medium text-gray-700 flex-1 truncate">
-                              {toTitleCase(food.description)}
-                            </span>
-                            <span className="text-gray-400 text-xs tabular-nums">
-                              {energyNutrient
-                                ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
-                                : "N/A"}
-                            </span>
-                          </div>
-                        );
-                      },
-                    )}
-                    <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 tracking-widest">
-                        Total Calories
-                      </span>
-                      <span className="text-lg font-bold">
-                        {Math.round(
-                          recipe.foods.reduce(
-                            (total: number, food: FoodWithAmount) => {
-                              const kcal =
-                                food.foodNutrients.find(
-                                  (nutrient: FoodNutrient) =>
-                                    nutrient.nutrientId === 1008,
-                                )?.value || 0;
-                              return total + kcal * (food.amount / 100);
-                            },
-                            0,
-                          ),
-                        )}{" "}
-                        KCAL
-                      </span>
-                    </div>
-                    {isPortionModalOpen && (
-                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[40vh]">
-                          <div className="flex justify-end">
-                            <IconButton
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                setIsPortionModalOpen(false);
-                              }}
-                              size="small"
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </div>
-                          <p className="mt-2 text-gray-700">
-                            Enter the portion size as a percentage of the
-                            original recipe (e.g. 50 for half, 200 for double)
-                          </p>
-                          <div className="mt-4 flex flex-col gap-4">
-                            <Input
-                              placeholder="Portion %"
-                              type="number"
-                              fullWidth
-                              onChange={(e) =>
-                                setPortion(parseFloat(e.target.value))
-                              }
-                            />
-                            <Button
-                              size="small"
-                              variant="contained"
-                              disabled={portion <= 0 || !portion}
-                              onClick={(e) => {
-                                const portionPercentage = portion / 100;
-                                const updatedRecipes = [...recipes];
-                                updatedRecipes.push({
-                                  ...recipe,
-                                  name: `${recipe.name} (${portion}%)`,
-                                  foods: recipe.foods.map((food) => ({
-                                    ...food,
-                                    amount: food.amount * portionPercentage,
-                                  })),
-                                });
-                                setRecipes(updatedRecipes);
-                                setPortion(0);
-                                setIsPortionModalOpen(false);
-                              }}
-                            >
-                              Save portion
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -885,7 +960,7 @@ export default function Home() {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
               <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Add Meal</h2>
+                  <h2 className="text-2xl font-semibold">Add Meal</h2>
                   <IconButton
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setIsAddMealModalOpen(false)}
@@ -907,7 +982,7 @@ export default function Home() {
                         className="p-5 border border-gray-200 rounded-xl mt-4 flex flex-col gap-3 relative bg-white shadow-sm hover:shadow-md transition-all duration-200"
                       >
                         <div className="flex justify-between items-center gap-2">
-                          <p className="text-lg font-bold text-gray-800 flex-1">
+                          <p className="text-lg font-semibold text-gray-800 flex-1">
                             {recipe.name}
                           </p>
                           <IconButton
@@ -1005,10 +1080,10 @@ export default function Home() {
                               )}
                             </div>
                             <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
-                              <span className="text-xs font-bold text-gray-400 tracking-widest">
+                              <span className="text-xs font-semibold text-gray-400 tracking-widest">
                                 Total Calories
                               </span>
-                              <span className="text-lg font-bold">
+                              <span className="text-lg font-semibold">
                                 {Math.round(
                                   recipe.foods.reduce(
                                     (total: number, food: FoodWithAmount) => {

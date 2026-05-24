@@ -106,6 +106,7 @@ export interface FoodWithOpen extends Food {
 
 export interface FoodWithAmount extends Food {
   amount: number;
+  open: boolean;
 }
 
 interface Aggregations {
