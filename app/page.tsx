@@ -38,7 +38,10 @@ import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { set } from "date-fns";
+import { SearchSection } from "@/components/SearchSection";
+import { FoodItemRow } from "@/components/FoodItemRow";
+import { TotalCalories } from "@/components/TotalCalories";
+import { toTitleCase, calculateTotalKcal } from "@/utils/helpers";
 
 const theme = createTheme({
   components: {
@@ -51,10 +54,6 @@ const theme = createTheme({
     },
   },
 });
-
-const toTitleCase = (str: string): string => {
-  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
-};
 
 const daysOfWeek = [
   "Monday",
@@ -383,23 +382,7 @@ export default function Home() {
                       {Math.round(
                         savedDays[selectedDayAndWeek.week]?.[day]?.reduce(
                           (total: number, recipe: Recipe) => {
-                            return (
-                              total +
-                              recipe.foods.reduce(
-                                (recipeTotal: number, food) => {
-                                  const energyNutrient =
-                                    food.foodNutrients.find(
-                                      (n: FoodNutrient) =>
-                                        n.nutrientId === 1008,
-                                    );
-                                  const kcal = energyNutrient
-                                    ? energyNutrient.value * (food.amount / 100)
-                                    : 0;
-                                  return recipeTotal + kcal;
-                                },
-                                0,
-                              )
-                            );
+                            return total + calculateTotalKcal(recipe.foods);
                           },
                           0,
                         ),
@@ -450,55 +433,16 @@ export default function Home() {
                     <CloseIcon />
                   </IconButton>
                 </div>
-                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-gray-300 shadow-sm focus-within:border-primary transition-all">
-                    <Input
-                      className="flex-1"
-                      type="text"
-                      placeholder="Search for food..."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      disableUnderline
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          searchHandler();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={searchHandler}
-                      loading={areResultsLoading}
-                      variant="contained"
-                    >
-                      Search
-                    </Button>
-                  </div>
-
-                  {/* filter needs focus colour if the other has it */}
-                  <div className="flex flex-row items-center gap-4">
-                    <div className="flex-1 flex items-center bg-white pl-3 p-1 rounded-lg border border-gray-300 shadow-sm">
-                      <Input
-                        className="w-full text-sm"
-                        type="text"
-                        placeholder="Filter items..."
-                        value={searchFilter}
-                        onChange={(e) => setSearchFilter(e.target.value)}
-                        disableUnderline
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 whitespace-nowrap pr-1">
-                      <Checkbox
-                        size="small"
-                        checked={brandFilter}
-                        onChange={(e) => setBrandFilter(e.target.checked)}
-                        sx={{ p: 0.5 }}
-                      />
-                      <span className="text-sm text-gray-600 font-medium select-none">
-                        Show branded
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                <SearchSection
+                  query={query}
+                  setQuery={setQuery}
+                  searchHandler={searchHandler}
+                  areResultsLoading={areResultsLoading}
+                  searchFilter={searchFilter}
+                  setSearchFilter={setSearchFilter}
+                  brandFilter={brandFilter}
+                  setBrandFilter={setBrandFilter}
+                />
                 {filteredResults && !areResultsLoading && (
                   <div className="mt-8 w-full">
                     <h3 className="text-xs font-semibold text-gray-400 tracking-widest mb-3 ml-1">
@@ -803,78 +747,28 @@ export default function Home() {
                         </div>
                         {recipe.foods.map(
                           (food: FoodWithAmount, foodIndex: number) => {
-                            const energyNutrient = food.foodNutrients.find(
-                              (n: FoodNutrient) => n.nutrientId === 1008,
-                            );
                             return (
-                              <div
+                              <FoodItemRow
                                 key={`${food.fdcId}-${foodIndex}`}
-                                className="flex items-center text-sm gap-2"
-                              >
-                                <Input
-                                  type="number"
-                                  value={food.amount}
-                                  onChange={(e) => {
-                                    const newAmount =
-                                      parseInt(e.target.value) || 1;
-                                    const updatedRecipes = [...recipes];
-                                    const updatedFoods = [...recipe.foods];
-                                    updatedFoods[foodIndex] = {
-                                      ...food,
-                                      amount: newAmount,
-                                    };
-                                    updatedRecipes[index] = {
-                                      ...recipe,
-                                      foods: updatedFoods,
-                                    };
-                                    setRecipes(updatedRecipes);
-                                  }}
-                                  disableUnderline
-                                  sx={{
-                                    width: "5ch",
-                                    fontSize: "0.875rem",
-                                    "& input": {
-                                      textAlign: "center",
-                                      padding: 0,
-                                    },
-                                    borderBottom: "1px solid #e5e7eb",
-                                  }}
-                                  inputProps={{ min: 1, max: 10000 }}
-                                />
-                                <span className="text-gray-400 w-4">g</span>
-                                <span className="font-medium text-gray-700 flex-1 truncate">
-                                  {toTitleCase(food.description)}
-                                </span>
-                                <span className="text-gray-400 text-xs tabular-nums">
-                                  {energyNutrient
-                                    ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
-                                    : "N/A"}
-                                </span>
-                              </div>
+                                food={food}
+                                onAmountChange={(newAmount) => {
+                                  const updatedRecipes = [...recipes];
+                                  const updatedFoods = [...recipe.foods];
+                                  updatedFoods[foodIndex] = {
+                                    ...food,
+                                    amount: newAmount,
+                                  };
+                                  updatedRecipes[index] = {
+                                    ...recipe,
+                                    foods: updatedFoods,
+                                  };
+                                  setRecipes(updatedRecipes);
+                                }}
+                              />
                             );
                           },
                         )}
-                        <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
-                          <span className="text-xs font-semibold text-gray-400 tracking-widest">
-                            Total Calories
-                          </span>
-                          <span className="text-lg font-semibold">
-                            {Math.round(
-                              recipe.foods.reduce(
-                                (total: number, food: FoodWithAmount) => {
-                                  const kcal =
-                                    food.foodNutrients.find(
-                                      (nutrient: FoodNutrient) =>
-                                        nutrient.nutrientId === 1008,
-                                    )?.value || 0;
-                                  return total + kcal * (food.amount / 100);
-                                },
-                                0,
-                              ),
-                            )}{" "}
-                            KCAL
-                          </span>
-                        </div>
+                        <TotalCalories foods={recipe.foods} />
                         {isPortionModalOpen && (
                           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                             <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[40vw] max-h-[40vh]">
@@ -1017,89 +911,31 @@ export default function Home() {
                             <div className="flex flex-col gap-1.5">
                               {recipe.foods.map(
                                 (food: FoodWithAmount, foodIndex: number) => {
-                                  const energyNutrient =
-                                    food.foodNutrients.find(
-                                      (n: FoodNutrient) =>
-                                        n.nutrientId === 1008,
-                                    );
                                   return (
-                                    <div
+                                    <FoodItemRow
                                       key={`${food.fdcId}-${foodIndex}`}
-                                      className="flex items-center text-sm gap-2"
-                                    >
-                                      <Input
-                                        type="number"
-                                        value={food.amount}
-                                        onChange={(e) => {
-                                          const updatedRecipes = [...recipes];
-                                          updatedRecipes[index] = {
-                                            ...recipe,
-                                            foods: updatedRecipes[
-                                              index
-                                            ].foods.map(
-                                              (f: FoodWithAmount, i: number) =>
-                                                i === foodIndex
-                                                  ? {
-                                                      ...f,
-                                                      amount:
-                                                        parseInt(
-                                                          e.target.value,
-                                                        ) || 1,
-                                                    }
-                                                  : f,
-                                            ),
-                                          };
-                                          setRecipes(updatedRecipes);
-                                        }}
-                                        disableUnderline
-                                        sx={{
-                                          width: "5ch",
-                                          fontSize: "0.875rem",
-                                          "& input": {
-                                            textAlign: "center",
-                                            padding: 0,
-                                          },
-                                          borderBottom: "1px solid #e5e7eb",
-                                        }}
-                                        inputProps={{ min: 1, max: 10000 }}
-                                      />
-                                      <span className="text-gray-400 w-4">
-                                        g
-                                      </span>
-                                      <span className="font-medium text-gray-700 flex-1 truncate">
-                                        {toTitleCase(food.description)}
-                                      </span>
-                                      <span className="text-gray-400 text-xs tabular-nums">
-                                        {energyNutrient
-                                          ? `${Math.round(energyNutrient.value * (food.amount / 100))} kcal`
-                                          : "N/A"}
-                                      </span>
-                                    </div>
+                                      food={food}
+                                      onAmountChange={(newAmount) => {
+                                        const updatedRecipes = [...recipes];
+                                        updatedRecipes[index] = {
+                                          ...recipe,
+                                          foods: updatedRecipes[
+                                            index
+                                          ].foods.map(
+                                            (f: FoodWithAmount, i: number) =>
+                                              i === foodIndex
+                                                ? { ...f, amount: newAmount }
+                                                : f,
+                                          ),
+                                        };
+                                        setRecipes(updatedRecipes);
+                                      }}
+                                    />
                                   );
                                 },
                               )}
                             </div>
-                            <div className="mt-2 pt-3 border-t border-gray-100 flex justify-between items-center">
-                              <span className="text-xs font-semibold text-gray-400 tracking-widest">
-                                Total Calories
-                              </span>
-                              <span className="text-lg font-semibold">
-                                {Math.round(
-                                  recipe.foods.reduce(
-                                    (total: number, food: FoodWithAmount) => {
-                                      const kcal =
-                                        food.foodNutrients.find(
-                                          (nutrient: FoodNutrient) =>
-                                            nutrient.nutrientId === 1008,
-                                        )?.value || 0;
-                                      return total + kcal * (food.amount / 100);
-                                    },
-                                    0,
-                                  ),
-                                )}{" "}
-                                KCAL
-                              </span>
-                            </div>
+                            <TotalCalories foods={recipe.foods} />
                           </>
                         )}
                       </div>
