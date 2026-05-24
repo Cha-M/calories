@@ -269,7 +269,7 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <div className="flex flex-col flex-1 items-center justify-center bg-gray-50 font-sans dark:bg-black">
         <main className="flex flex-1 w-full flex-col gap-6 py-12 px-12 bg-white dark:bg-black sm:items-start">
           <LocalizationProvider
             dateAdapter={AdapterDateFns}
@@ -450,8 +450,8 @@ export default function Home() {
                     <CloseIcon />
                   </IconButton>
                 </div>
-                <div className="flex flex-col gap-4 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
-                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all">
+                <div className="flex flex-col gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-gray-300 shadow-sm focus-within:border-primary transition-all">
                     <Input
                       className="flex-1"
                       type="text"
@@ -476,7 +476,7 @@ export default function Home() {
 
                   {/* filter needs focus colour if the other has it */}
                   <div className="flex flex-row items-center gap-4">
-                    <div className="flex-1 flex items-center bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm">
+                    <div className="flex-1 flex items-center bg-white pl-3 p-1 rounded-lg border border-gray-300 shadow-sm">
                       <Input
                         className="w-full text-sm"
                         type="text"
@@ -579,12 +579,12 @@ export default function Home() {
                   </div>
                 )}
                 {selectedItems.length > 0 && (
-                  <div className="mt-12 pt-8 border-t border-zinc-200">
+                  <div className="mt-12 pt-8 border-t border-gray-200">
                     <div className="flex items-center gap-2 mb-4">
                       <h3 className="text-xs font-semibold text-gray-400 tracking-widest">
                         Ingredients
                       </h3>
-                      <span className="bg-zinc-100 text-zinc-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      <span className="bg-gray-100 text-gray-700 text-xs font-semibold px-2 py-0.5 rounded-full">
                         {selectedItems.length} item
                         {selectedItems.length !== 1 ? "s" : ""}
                       </span>
@@ -693,7 +693,7 @@ export default function Home() {
                                     Enter the unit you wish to convert to grams
                                     e.g., &quot;1 UK tablespoon&quot;
                                   </p>
-                                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-zinc-300 shadow-sm focus-within:border-primary transition-all mt-4">
+                                  <div className="flex flex-row gap-2 bg-white pl-3 p-1 rounded-lg border border-gray-300 shadow-sm focus-within:border-primary transition-all mt-4">
                                     <Input
                                       placeholder="Enter unit..."
                                       value={unitConversionUnitText}
@@ -758,7 +758,7 @@ export default function Home() {
                   </div>
                 )}
                 {recipes.length > 0 && (
-                  <div className="mt-12 pt-8 border-t border-zinc-200">
+                  <div className="mt-12 pt-8 border-t border-gray-200">
                     <h3 className="text-xs font-semibold text-gray-400 tracking-widest mb-4 ml-1">
                       Saved Recipes
                     </h3>
